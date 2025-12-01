@@ -1,1 +1,2 @@
 # Clinic-Appointment-System
+Clinic Appointment System (CAS) is a user-friendly application that simplifies healthcare management. Patients can register, book appointments, and get reminders. Doctors can manage their schedules, while admins oversee clinic operations, doctor availability, and patient data. The system is designed with clean architecture, role-based access, and multiple design patterns to ensure scalability and maintainability.
