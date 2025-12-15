@@ -1,4 +1,4 @@
-name: Java CI with Maven
+name: Java CI with Gradle
 
 on:
   push:
@@ -8,8 +8,9 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
     - uses: actions/checkout@v4
@@ -19,28 +20,60 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        # Cache is still disabled to prevent the initial file check error
         
-    - name: 📦 Locate pom.xml and Build with Maven
+    - name: Setup Gradle
+      # This action handles caching and setup
+      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+    - name: 📦 Locate Build File and Run Build
       run: |
-        # 1. Use 'find' to locate the pom.xml file anywhere in the repository.
-        #    This finds the file's directory and stores it in the BUILD_DIR variable.
-        BUILD_DIR=$(find . -name pom.xml -exec dirname {} \;)
+        # 1. FIND THE BUILD FILE'S DIRECTORY
+        # Finds the directory containing 'build.gradle' or 'build.gradle.kts'
+        BUILD_DIR=$(find . -name build.gradle -exec dirname {} \;)
         
         if [ -z "$BUILD_DIR" ]; then
-          echo "Error: pom.xml not found anywhere in the repository structure."
+          # Fallback: Check for Kotlin DSL file
+          BUILD_DIR=$(find . -name build.gradle.kts -exec dirname {} \;)
+        fi
+        
+        if [ -z "$BUILD_DIR" ]; then
+          echo "Error: Neither build.gradle nor build.gradle.kts found. Please commit one."
           exit 1
         fi
         
-        echo "Found pom.xml in directory: $BUILD_DIR"
+        echo "Found build file in directory: $BUILD_DIR"
         
-        # 2. Change the current directory to the location where pom.xml was found.
+        # 2. Change the current directory to the location where the file was found.
         cd "$BUILD_DIR"
         
-        # 3. Run the Maven package command from the correct directory.
-        mvn -B package
-      
-    - name: Update dependency graph
-      uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
-      # Note: This action may also need the working-directory set, 
-      # but testing the build is the priority.
+        # 3. Make the Gradle Wrapper executable
+        chmod +x gradlew
+        
+        # 4. Execute the build task.
+        ./gradlew build
+
+  dependency-submission:
+    # IMPORTANT: Must run after the build job is successful to ensure dependencies are resolved
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed for submitting the dependency graph
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Generate and submit dependency graph
+      # This action also needs to know where the build file is located
+      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+      with:
+        # Use the same logic here or, ideally, pass the path if available.
+        # Since passing the path between jobs is complex, we will re-run the file-finding logic.
+        build-root-directory: ${{ github.workspace }}
+        # NOTE: This action is often smarter than the direct 'run' command,
+        # but if it fails, you may need to add the 'working-directory' parameter 
+        # based on the $BUILD_DIR found in the previous job.
