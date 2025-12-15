@@ -19,11 +19,28 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        # FIX: Removed 'cache: maven' which was causing the pom.xml error
+        # Cache is still disabled to prevent the initial file check error
         
-    - name: Build and Test with Maven
-      # We assume pom.xml is in the repository root, so no 'working-directory' is needed here.
-      run: mvn -B package --file pom.xml 
+    - name: 📦 Locate pom.xml and Build with Maven
+      run: |
+        # 1. Use 'find' to locate the pom.xml file anywhere in the repository.
+        #    This finds the file's directory and stores it in the BUILD_DIR variable.
+        BUILD_DIR=$(find . -name pom.xml -exec dirname {} \;)
+        
+        if [ -z "$BUILD_DIR" ]; then
+          echo "Error: pom.xml not found anywhere in the repository structure."
+          exit 1
+        fi
+        
+        echo "Found pom.xml in directory: $BUILD_DIR"
+        
+        # 2. Change the current directory to the location where pom.xml was found.
+        cd "$BUILD_DIR"
+        
+        # 3. Run the Maven package command from the correct directory.
+        mvn -B package
       
     - name: Update dependency graph
       uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+      # Note: This action may also need the working-directory set, 
+      # but testing the build is the priority.
