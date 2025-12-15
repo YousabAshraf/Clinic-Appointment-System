@@ -13,6 +13,9 @@ public class DoctorBuilder {
     private double fee = 50.0;
     private List<String> availability = new ArrayList<>();
 
+    public DoctorBuilder() {
+    }
+
     public DoctorBuilder(int id, String name, String email, String password) {
         this.id = id;
         this.name = name;
@@ -21,6 +24,16 @@ public class DoctorBuilder {
     }
 
     // Fluent Setters (return 'this')
+    public DoctorBuilder setId(int id) {
+        this.id = id;
+        return this;
+    }
+
+    public DoctorBuilder setName(String name) {
+        this.name = name;
+        return this;
+    }
+
     public DoctorBuilder setSpecialty(String specialty) {
         this.specialty = specialty;
         return this;
@@ -31,19 +44,44 @@ public class DoctorBuilder {
         return this;
     }
 
+    public DoctorBuilder setAvailability(List<String> availability) {
+        this.availability = availability;
+        return this;
+    }
+
     public DoctorBuilder addAvailability(String slot) {
         this.availability.add(slot);
         return this;
     }
 
     // Getters (So the Doctor class can read the data)
-    public int getId() { return id; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
-    public String getSpecialty() { return specialty; }
-    public double getFee() { return fee; }
-    public List<String> getAvailability() { return availability; }
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getSpecialty() {
+        return specialty;
+    }
+
+    public double getFee() {
+        return fee;
+    }
+
+    public List<String> getAvailability() {
+        return availability;
+    }
 
     public Doctor build() {
         return new Doctor(this);
