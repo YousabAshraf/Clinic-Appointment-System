@@ -1,5 +1,6 @@
 package app.services;
 
+
 import app.models.Appointment;
 import app.models.AppointmentBuilder;
 import app.models.Doctor;
@@ -8,6 +9,12 @@ import app.models.Patient;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.time.LocalDate;
+import java.util.stream.Collectors;
+
+
+
 
 public class AppointmentScheduler {
     private static AppointmentScheduler instance;
@@ -41,7 +48,7 @@ public class AppointmentScheduler {
                 .setDoctor(doctor)
                 .setPatient(patient)
                 .setDateTime(dateTime)
-                .setStatus("CONFIRMED")
+                .setStatus("PENDING")
                 .build();
 
         // 3. Save
@@ -66,4 +73,23 @@ public class AppointmentScheduler {
     public List<Appointment> getAppointments() {
         return appointments;
     }
+
+    public List<Appointment> getDailySchedule(LocalDate date) {
+        return appointments.stream()
+                .filter(a -> a.getDateTime().toLocalDate().equals(date))
+                .collect(Collectors.toList());
+    }
+
+    public List<Appointment> getWeeklySchedule(LocalDate startDate) {
+        LocalDate endDate = startDate.plusDays(6);
+
+        return appointments.stream()
+                .filter(a -> {
+                    LocalDate d = a.getDateTime().toLocalDate();
+                    return !d.isBefore(startDate) && !d.isAfter(endDate);
+                })
+                .collect(Collectors.toList());
+    }
+
+
 }
