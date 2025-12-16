@@ -4,8 +4,6 @@ import app.models.Appointment;
 import app.models.AppointmentBuilder;
 import app.models.Doctor;
 import app.models.Patient;
-import app.services.booking.BookingValidationStrategy;
-import app.services.booking.StandardBookingStrategy;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,13 +12,13 @@ import java.util.List;
 public class AppointmentScheduler {
     private static AppointmentScheduler instance;
     private List<Appointment> appointments;
-    private BookingValidationStrategy validationStrategy;
 
+    // Private constructor (Singleton)
     private AppointmentScheduler() {
         this.appointments = new ArrayList<>();
-        this.validationStrategy = new StandardBookingStrategy(); // Default strategy
     }
 
+    // Public access point
     public static AppointmentScheduler getInstance() {
         if (instance == null) {
             instance = new AppointmentScheduler();
@@ -28,17 +26,16 @@ public class AppointmentScheduler {
         return instance;
     }
 
-    public void setValidationStrategy(BookingValidationStrategy strategy) {
-        this.validationStrategy = strategy;
-    }
-
     public boolean bookAppointment(Doctor doctor, Patient patient, LocalDateTime dateTime) {
         System.out.println("Attempting to book for Dr. " + doctor.getName() + " at " + dateTime + "...");
 
-        if (!validationStrategy.isValid(doctor, dateTime, appointments)) {
-            System.out.println("Booking denied: Validation failed.");
+        // 1. Validate directly
+        if (!isSlotAvailable(doctor, dateTime)) {
+            System.out.println("Booking denied: Slot unavailable.");
             return false;
         }
+
+        // 2. Build using Builder
         Appointment newAppointment = new AppointmentBuilder()
                 .setId(appointments.size() + 1)
                 .setDoctor(doctor)
@@ -47,8 +44,22 @@ public class AppointmentScheduler {
                 .setStatus("CONFIRMED")
                 .build();
 
+        // 3. Save
         appointments.add(newAppointment);
         System.out.println("Booking Successful: " + newAppointment);
+        return true;
+    }
+
+    private boolean isSlotAvailable(Doctor doctor, LocalDateTime time) {
+        for (Appointment appt : appointments) {
+            if (appt.getDoctor().getId() == doctor.getId()) {
+                if (appt.getDateTime().isEqual(time)) {
+                    System.out
+                            .println("Validation Failed: Doctor " + doctor.getName() + " is already booked at " + time);
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
