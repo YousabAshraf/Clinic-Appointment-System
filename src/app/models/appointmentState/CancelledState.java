@@ -1,4 +1,4 @@
-package app.models.appointment.state;
+package app.models.appointmentState;
 
 import app.models.Appointment;
 import java.time.LocalDateTime;

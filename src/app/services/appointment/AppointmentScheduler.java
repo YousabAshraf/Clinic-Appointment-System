@@ -1,4 +1,4 @@
-package app.services;
+package app.services.appointment;
 
 
 import app.models.Appointment;
@@ -48,7 +48,6 @@ public class AppointmentScheduler {
                 .setDoctor(doctor)
                 .setPatient(patient)
                 .setDateTime(dateTime)
-                .setStatus("PENDING")
                 .build();
 
         // 3. Save

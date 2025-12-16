@@ -1,30 +1,29 @@
-package app.models.appointment.state;
+package app.models.appointmentState;
 
 import app.models.Appointment;
 import java.time.LocalDateTime;
 
-public class PendingState implements AppointmentState {
+public class ApprovedState implements AppointmentState {
 
     @Override
     public void approve(Appointment appointment) {
-        appointment.setState(new ApprovedState());
-        System.out.println("Appointment approved.");
+        System.out.println("Appointment already approved.");
     }
 
     @Override
     public void cancel(Appointment appointment) {
         appointment.setState(new CancelledState());
-        System.out.println("Appointment cancelled.");
+        System.out.println("Approved appointment cancelled.");
     }
 
     @Override
     public void reschedule(Appointment appointment, LocalDateTime newTime) {
         appointment.setDateTime(newTime);
-        System.out.println("Pending appointment rescheduled.");
+        System.out.println("Approved appointment rescheduled.");
     }
 
     @Override
     public String getStatus() {
-        return "PENDING";
+        return "APPROVED";
     }
 }

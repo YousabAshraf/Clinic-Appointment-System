@@ -7,7 +7,6 @@ public class AppointmentBuilder {
     private Doctor doctor;
     private Patient patient;
     private LocalDateTime dateTime;
-    private String status;
     private String notes;
 
     public AppointmentBuilder setId(int id) {
@@ -30,17 +29,12 @@ public class AppointmentBuilder {
         return this;
     }
 
-    public AppointmentBuilder setStatus(String status) {
-        this.status = status;
-        return this;
-    }
-
     public AppointmentBuilder setNotes(String notes) {
         this.notes = notes;
         return this;
     }
 
     public Appointment build() {
-        return new Appointment(id, doctor, patient, dateTime, status, notes);
+        return new Appointment(id, doctor, patient, dateTime, null, notes);
     }
 }

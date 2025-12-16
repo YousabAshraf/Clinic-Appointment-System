@@ -1,4 +1,4 @@
-package app.services;
+package app.services.appointment;
 
 import app.models.Appointment;
 import java.time.LocalDateTime;

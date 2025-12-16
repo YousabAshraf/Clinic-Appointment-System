@@ -1,7 +1,7 @@
 package app.models;
 
-import app.models.appointment.state.AppointmentState;
-import app.models.appointment.state.PendingState;
+import app.models.appointmentState.AppointmentState;
+import app.models.appointmentState.PendingState;
 
 import java.time.LocalDateTime;
 
