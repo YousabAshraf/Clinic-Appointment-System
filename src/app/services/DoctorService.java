@@ -10,10 +10,12 @@ public class DoctorService {
 
     private static DoctorService instance;
 
-    private DoctorService() {}
+    private DoctorService() {
+    }
 
     public static DoctorService getInstance() {
-        if (instance == null) instance = new DoctorService();
+        if (instance == null)
+            instance = new DoctorService();
         return instance;
     }
 
@@ -42,6 +44,15 @@ public class DoctorService {
             Doctor doc = box.get();
             doc.setSpecialty(newSpecialty);
             doc.setConsultationFee(newFee);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean updateDoctorAvailability(int doctorId, List<String> newAvailability) {
+        Optional<Doctor> box = findDoctorById(doctorId);
+        if (box.isPresent()) {
+            box.get().setAvailability(newAvailability);
             return true;
         }
         return false;

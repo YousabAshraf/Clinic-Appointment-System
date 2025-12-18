@@ -1,14 +1,34 @@
 import app.services.*;
-import app.models.User;
 import app.ui.LoginForm;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        List<User> users = new ArrayList<>();
+        // Initialize Data
+        initializeData();
 
+        // Launch GUI
         new LoginForm().setVisible(true);
+    }
+
+    private static void initializeData() {
+        System.out.println("Initializing Seed Data...");
+
+        // 1. Admin
+        RegistrationService.getInstance().register("System Admin", "admin@cas.com", "admin123", "ADMIN");
+
+        // 2. Doctors
+        String[] specialties = { "Cardiology", "Dermatology", "Neurology", "Pediatrics", "Orthopedics" };
+        DoctorService docService = DoctorService.getInstance();
+
+        for (int i = 1; i <= 10; i++) {
+            String name = "Dr. " + (char) ('A' + i - 1) + " House";
+            String email = "doctor" + i + "@cas.com";
+            String specialty = specialties[i % specialties.length];
+            double fee = 50.0 + (i * 10);
+
+            docService.addDoctor(name, email, "pass123", specialty, fee);
+        }
+
+        System.out.println("Data Initialization Complete.");
     }
 }

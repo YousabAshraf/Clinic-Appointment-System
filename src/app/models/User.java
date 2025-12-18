@@ -18,17 +18,22 @@ public abstract class User {
     public String getRole() {
         return role;
     }
+
     public String getName() {
         return name;
     }
+
     public String getEmail() {
         return email;
     }
-    public int getId() { return id; }
+
+    public int getId() {
+        return id;
+    }
+
     public String getPassword() {
         return password;
     }
 
     public abstract void openDashboard();
 }
-

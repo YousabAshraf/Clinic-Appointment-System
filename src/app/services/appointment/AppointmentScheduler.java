@@ -1,6 +1,5 @@
 package app.services.appointment;
 
-
 import app.models.Appointment;
 import app.models.AppointmentBuilder;
 import app.models.Doctor;
@@ -12,9 +11,6 @@ import java.util.List;
 
 import java.time.LocalDate;
 import java.util.stream.Collectors;
-
-
-
 
 public class AppointmentScheduler {
     private static AppointmentScheduler instance;
@@ -89,6 +85,5 @@ public class AppointmentScheduler {
                 })
                 .collect(Collectors.toList());
     }
-
 
 }
