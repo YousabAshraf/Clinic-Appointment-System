@@ -1,8 +1,10 @@
 package app.ui.panels;
 
 import javax.swing.*;
-//import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import app.models.*;
@@ -14,17 +16,47 @@ public class ViewAppointmentsPanel extends JPanel {
 
     private JPanel listPanel;
     private JScrollPane scrollPane;
+    private String currentView = "ALL"; // ALL, TODAY, WEEK
 
     public ViewAppointmentsPanel() {
         setLayout(new BorderLayout(0, 20));
         setBackground(Theme.BACKGROUND_COLOR);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Header
-        JLabel title = new JLabel("My Appointments");
+        // Top Panel: Header + Toolbar
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Theme.BACKGROUND_COLOR);
+
+        JLabel title = new JLabel("Appointments");
         title.setFont(Theme.TITLE_FONT);
         title.setForeground(Theme.PRIMARY_DARK);
-        add(title, BorderLayout.NORTH);
+        topPanel.add(title, BorderLayout.WEST);
+
+        // Toolbar for Filters & Actions
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        toolbar.setBackground(Theme.BACKGROUND_COLOR);
+
+        // Filters
+        JButton allBtn = createFilterBtn("All", "ALL");
+        JButton todayBtn = createFilterBtn("Today", "TODAY");
+        JButton weekBtn = createFilterBtn("This Week", "WEEK");
+
+        toolbar.add(allBtn);
+        toolbar.add(todayBtn);
+        toolbar.add(weekBtn);
+
+        // Doctor Actions
+        User user = SessionManager.getInstance().getLoggedUser();
+        if ("DOCTOR".equals(user.getRole())) {
+            toolbar.add(Box.createHorizontalStrut(20));
+            JButton blockBtn = new JButton("Block Leave");
+            Theme.styleButton(blockBtn, false);
+            blockBtn.addActionListener(e -> showBlockLeaveDialog());
+            toolbar.add(blockBtn);
+        }
+
+        topPanel.add(toolbar, BorderLayout.EAST);
+        add(topPanel, BorderLayout.NORTH);
 
         // List Container
         listPanel = new JPanel();
@@ -52,26 +84,100 @@ public class ViewAppointmentsPanel extends JPanel {
         refreshData();
     }
 
+    private JButton createFilterBtn(String label, String code) {
+        JButton btn = new JButton(label);
+        btn.setFont(Theme.BUTTON_FONT);
+        btn.setFocusPainted(false);
+        btn.setBackground(Color.WHITE);
+        btn.setForeground(Theme.PRIMARY_COLOR);
+        btn.setBorder(BorderFactory.createLineBorder(Theme.PRIMARY_COLOR));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(80, 25));
+
+        btn.addActionListener(e -> {
+            this.currentView = code;
+            refreshData();
+        });
+        return btn;
+    }
+
+    private void showBlockLeaveDialog() {
+        // Simple Input for Date (YYYY-MM-DD) and Time (HH:MM)
+        // For simplicity, using multiple option dialogs or a small form
+
+        JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
+        JTextField dateFld = new JTextField(LocalDate.now().plusDays(1).toString());
+        String[] slots = { "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00" };
+        JComboBox<String> timeBox = new JComboBox<>(slots);
+
+        p.add(new JLabel("Date (YYYY-MM-DD):"));
+        p.add(dateFld);
+        p.add(new JLabel("Time:"));
+        p.add(timeBox);
+
+        int res = JOptionPane.showConfirmDialog(this, p, "Block Slot / Leave", JOptionPane.OK_CANCEL_OPTION);
+        if (res == JOptionPane.OK_OPTION) {
+            try {
+                LocalDate d = LocalDate.parse(dateFld.getText());
+                LocalTime t = LocalTime.parse((String) timeBox.getSelectedItem());
+                LocalDateTime dt = LocalDateTime.of(d, t);
+
+                Doctor doc = (Doctor) SessionManager.getInstance().getLoggedUser(); // Casting assumes calling logic is
+                                                                                    // correct
+                boolean success = AppointmentScheduler.getInstance().blockSlot(doc, dt);
+
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Slot Blocked Successfully.");
+                    refreshData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Failed. Slot might be taken.");
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid Date Format.");
+            }
+        }
+    }
+
     public void refreshData() {
         listPanel.removeAll();
 
         User currentUser = SessionManager.getInstance().getLoggedUser();
         List<Appointment> all = AppointmentScheduler.getInstance().getAppointments();
-        List<Appointment> filtered;
 
+        // 1. Role Filter
+        List<Appointment> roleFiltered;
         if ("ADMIN".equalsIgnoreCase(currentUser.getRole())) {
-            filtered = all;
+            roleFiltered = all;
         } else if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
-            filtered = all.stream()
+            roleFiltered = all.stream()
                     .filter(a -> a.getDoctor().getId() == currentUser.getId())
                     .collect(Collectors.toList());
         } else { // PATIENT
-            filtered = all.stream()
+            roleFiltered = all.stream()
                     .filter(a -> a.getPatient().getId() == currentUser.getId())
                     .collect(Collectors.toList());
         }
 
-        if (filtered.isEmpty()) {
+        // 2. View Filter (Date)
+        LocalDate today = LocalDate.now();
+        List<Appointment> finalFiltered;
+
+        if ("TODAY".equals(currentView)) {
+            finalFiltered = roleFiltered.stream()
+                    .filter(a -> a.getDateTime().toLocalDate().equals(today))
+                    .collect(Collectors.toList());
+        } else if ("WEEK".equals(currentView)) {
+            finalFiltered = roleFiltered.stream()
+                    .filter(a -> {
+                        LocalDate d = a.getDateTime().toLocalDate();
+                        return !d.isBefore(today) && d.isBefore(today.plusDays(7));
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            finalFiltered = roleFiltered;
+        }
+
+        if (finalFiltered.isEmpty()) {
             JLabel empty = new JLabel("No appointments found.");
             empty.setFont(Theme.HEADER_FONT);
             empty.setForeground(Theme.TEXT_SECONDARY);
@@ -79,7 +185,7 @@ public class ViewAppointmentsPanel extends JPanel {
             listPanel.add(Box.createVerticalStrut(50));
             listPanel.add(empty);
         } else {
-            for (Appointment a : filtered) {
+            for (Appointment a : finalFiltered) {
                 listPanel.add(createAppointmentCard(a));
                 listPanel.add(Box.createVerticalStrut(15)); // Gap between cards
             }
@@ -97,6 +203,8 @@ public class ViewAppointmentsPanel extends JPanel {
                 BorderFactory.createEmptyBorder(15, 20, 15, 20)));
         card.setMaximumSize(new Dimension(800, 100));
         card.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        boolean isBlocked = (a.getPatient().getId() == -1);
 
         // Left: Date
         JPanel datePanel = new JPanel(new GridLayout(2, 1));
@@ -125,16 +233,24 @@ public class ViewAppointmentsPanel extends JPanel {
         String nameLabel = "Dr. " + a.getDoctor().getName();
         String subLabel = a.getDoctor().getSpecialty();
 
-        // If I am a doctor, show Patient Name instead
         User currentUser = SessionManager.getInstance().getLoggedUser();
+        // If I am a doctor, show Patient Name instead
         if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
-            nameLabel = "Patient: " + a.getPatient().getName();
-            subLabel = "ID: " + a.getPatient().getId();
+            if (isBlocked) {
+                nameLabel = "BLOCKED SLOT (LEAVE)";
+                subLabel = "Unavailable for booking";
+                card.setBackground(new Color(245, 245, 245)); // Grey out
+                infoPanel.setBackground(new Color(245, 245, 245));
+                datePanel.setBackground(new Color(245, 245, 245));
+            } else {
+                nameLabel = "Patient: " + a.getPatient().getName();
+                subLabel = "ID: " + a.getPatient().getId();
+            }
         }
 
         JLabel mainName = new JLabel(nameLabel);
         mainName.setFont(Theme.SUBHEADER_FONT);
-        mainName.setForeground(Theme.TEXT_PRIMARY);
+        mainName.setForeground(isBlocked ? Theme.TEXT_SECONDARY : Theme.TEXT_PRIMARY);
 
         JLabel subMeta = new JLabel(subLabel);
         subMeta.setFont(Theme.REGULAR_FONT);
@@ -146,58 +262,126 @@ public class ViewAppointmentsPanel extends JPanel {
 
         // Right: Status & Actions
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        rightPanel.setBackground(Color.WHITE);
+        rightPanel.setBackground(isBlocked ? new Color(245, 245, 245) : Color.WHITE);
 
-        // Actions for Doctor if Pending
-        if ("DOCTOR".equalsIgnoreCase(currentUser.getRole()) && "Pending".equalsIgnoreCase(a.getStatus())) {
-            JButton approveBtn = new JButton("✔");
-            approveBtn.setForeground(Theme.SUCCESS);
-            approveBtn.setBackground(Color.WHITE);
-            approveBtn.setBorder(BorderFactory.createLineBorder(Theme.SUCCESS));
-            approveBtn.setToolTipText("Approve Appointment");
-            approveBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            approveBtn.setPreferredSize(new Dimension(30, 30));
-            approveBtn.addActionListener(e -> {
-                a.approve();
-                refreshData();
-            });
-
-            JButton cancelBtn = new JButton("✖");
-            cancelBtn.setForeground(Theme.ERROR_COLOR);
-            cancelBtn.setBackground(Color.WHITE);
-            cancelBtn.setBorder(BorderFactory.createLineBorder(Theme.ERROR_COLOR));
-            cancelBtn.setToolTipText("Reject Appointment");
-            cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            cancelBtn.setPreferredSize(new Dimension(30, 30));
-            cancelBtn.addActionListener(e -> {
+        if (isBlocked) {
+            JButton unblockBtn = new JButton("Unblock");
+            unblockBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            unblockBtn.setForeground(Theme.ERROR_COLOR);
+            unblockBtn.setBackground(Color.WHITE);
+            unblockBtn.setBorder(BorderFactory.createLineBorder(Theme.ERROR_COLOR));
+            unblockBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            unblockBtn.setPreferredSize(new Dimension(80, 25));
+            unblockBtn.addActionListener(e -> {
                 a.cancel();
                 refreshData();
             });
+            rightPanel.add(unblockBtn);
 
-            rightPanel.add(approveBtn);
-            rightPanel.add(Box.createHorizontalStrut(5));
-            rightPanel.add(cancelBtn);
-            rightPanel.add(Box.createHorizontalStrut(10));
-        }
+            JLabel statusLbl = new JLabel(" BLOCKED ");
+            statusLbl.setFont(Theme.BUTTON_FONT);
+            statusLbl.setOpaque(true);
+            statusLbl.setBackground(Color.GRAY);
+            statusLbl.setForeground(Color.WHITE);
+            statusLbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+            rightPanel.add(statusLbl);
 
-        // Status Badge
-        JLabel statusLbl = new JLabel(" " + a.getStatus() + " ");
-        statusLbl.setFont(Theme.BUTTON_FONT);
-        statusLbl.setOpaque(true);
-        statusLbl.setForeground(Color.WHITE);
-
-        if ("Confirmed".equalsIgnoreCase(a.getStatus())) {
-            statusLbl.setBackground(Theme.SUCCESS);
-        } else if ("Cancelled".equalsIgnoreCase(a.getStatus())) {
-            statusLbl.setBackground(Theme.ERROR_COLOR);
         } else {
-            statusLbl.setBackground(Theme.WARNING);
+            if (!"Cancelled".equalsIgnoreCase(a.getStatus()) && !"Rejected".equalsIgnoreCase(a.getStatus())) {
+                JButton reschedBtn = new JButton("📅");
+                reschedBtn.setToolTipText("Reschedule");
+                reschedBtn.setBorder(null);
+                reschedBtn.setBackground(Color.WHITE);
+                reschedBtn.setPreferredSize(new Dimension(30, 30));
+                reschedBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                reschedBtn.addActionListener(e -> showRescheduleDialog(a));
+                rightPanel.add(reschedBtn);
+            }
+
+            if ("DOCTOR".equalsIgnoreCase(currentUser.getRole()) && "Pending".equalsIgnoreCase(a.getStatus())) {
+                JButton approveBtn = new JButton("✔");
+                approveBtn.setForeground(Theme.SUCCESS);
+                approveBtn.setBackground(Color.WHITE);
+                approveBtn.setBorder(BorderFactory.createLineBorder(Theme.SUCCESS));
+                approveBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                approveBtn.setPreferredSize(new Dimension(30, 30));
+                approveBtn.addActionListener(e -> {
+                    a.approve();
+                    refreshData();
+                });
+
+                JButton cancelBtn = new JButton("✖");
+                cancelBtn.setForeground(Theme.ERROR_COLOR);
+                cancelBtn.setBackground(Color.WHITE);
+                cancelBtn.setBorder(BorderFactory.createLineBorder(Theme.ERROR_COLOR));
+                cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                cancelBtn.setPreferredSize(new Dimension(30, 30));
+                cancelBtn.addActionListener(e -> {
+                    a.cancel();
+                    refreshData();
+                });
+
+                rightPanel.add(Box.createHorizontalStrut(10));
+                rightPanel.add(approveBtn);
+                rightPanel.add(Box.createHorizontalStrut(5));
+                rightPanel.add(cancelBtn);
+                rightPanel.add(Box.createHorizontalStrut(10));
+            }
+
+            JLabel statusLbl = new JLabel(" " + a.getStatus() + " ");
+            statusLbl.setFont(Theme.BUTTON_FONT);
+            statusLbl.setOpaque(true);
+            statusLbl.setForeground(Color.WHITE);
+
+            if ("Confirmed".equalsIgnoreCase(a.getStatus())) {
+                statusLbl.setBackground(Theme.SUCCESS);
+            } else if ("Cancelled".equalsIgnoreCase(a.getStatus()) || "Rejected".equalsIgnoreCase(a.getStatus())) {
+                statusLbl.setBackground(Theme.ERROR_COLOR);
+            } else {
+                statusLbl.setBackground(Theme.WARNING);
+            }
+            statusLbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Pill padding
+
+            rightPanel.add(statusLbl);
         }
-        statusLbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Pill padding
 
-        rightPanel.add(statusLbl);
         card.add(rightPanel, BorderLayout.EAST);
-
         return card;
+    }
+
+    private void showRescheduleDialog(Appointment a) {
+        // Validation: Can only reschedule execution if we verify slot
+        JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
+        JTextField dateFld = new JTextField(a.getDateTime().toLocalDate().toString());
+        String[] slots = { "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00" };
+        JComboBox<String> timeBox = new JComboBox<>(slots);
+        timeBox.setSelectedItem(a.getDateTime().toLocalTime().toString());
+
+        p.add(new JLabel("New Date (YYYY-MM-DD):"));
+        p.add(dateFld);
+        p.add(new JLabel("New Time:"));
+        p.add(timeBox);
+
+        int res = JOptionPane.showConfirmDialog(this, p, "Reschedule Appointment", JOptionPane.OK_CANCEL_OPTION);
+        if (res == JOptionPane.OK_OPTION) {
+            try {
+                LocalDate d = LocalDate.parse(dateFld.getText());
+                LocalTime t = LocalTime.parse((String) timeBox.getSelectedItem());
+                LocalDateTime dt = LocalDateTime.of(d, t);
+
+                // Check if slot available
+                if (AppointmentScheduler.getInstance().isSlotBooked(a.getDoctor().getId(), dt)) {
+                    JOptionPane.showMessageDialog(this, "Slot already booked! Choose another.");
+                    return;
+                }
+
+                a.reschedule(dt);
+                JOptionPane.showMessageDialog(this, "Rescheduled Successfully.");
+                refreshData();
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid Date.");
+            }
+        }
     }
 }

@@ -172,7 +172,8 @@ public class BookingPanel extends JPanel {
             workingDays.add(day);
         }
 
-        // Generate next 14 days and check if they match working days
+        // Generate next 14 days and check if they match working days and have at least
+        // one slot free
         LocalDate today = LocalDate.now().plusDays(1); // Start from tomorrow
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -182,7 +183,25 @@ public class BookingPanel extends JPanel {
             dayName = dayName.charAt(0) + dayName.substring(1).toLowerCase(); // "Monday"
 
             if (workingDays.contains(dayName)) {
-                dateBox.addItem(d.format(formatter) + " (" + dayName + ")");
+                // Check if FULLY booked
+                boolean hasFreeSlot = false;
+                for (String slot : availability) {
+                    if (slot.startsWith(dayName)) {
+                        String[] parts = slot.split(" ");
+                        if (parts.length >= 2) {
+                            LocalTime t = LocalTime.parse(parts[1]);
+                            LocalDateTime dt = LocalDateTime.of(d, t);
+                            if (!AppointmentScheduler.getInstance().isSlotBooked(doc.getId(), dt)) {
+                                hasFreeSlot = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (hasFreeSlot) {
+                    dateBox.addItem(d.format(formatter) + " (" + dayName + ")");
+                }
             }
         }
     }

@@ -58,6 +58,27 @@ public class AppointmentScheduler {
         return true;
     }
 
+    public boolean blockSlot(Doctor doctor, LocalDateTime dateTime) {
+        if (!isSlotAvailable(doctor, dateTime)) {
+            System.out.println("Block failed: Slot unavailable.");
+            return false;
+        }
+
+        // Dummy Patient for Blocking
+        Patient dummy = new Patient(-1, "UNAVAILABLE", "N/A", "N/A");
+
+        Appointment blockAppt = new AppointmentBuilder()
+                .setId(appointments.size() + 1)
+                .setDoctor(doctor)
+                .setPatient(dummy)
+                .setDateTime(dateTime)
+                .build();
+
+        appointments.add(blockAppt);
+        System.out.println("Slot Blocked for Dr. " + doctor.getName() + " at " + dateTime);
+        return true;
+    }
+
     private boolean isSlotAvailable(Doctor doctor, LocalDateTime time) {
         for (Appointment appt : appointments) {
             // Ignore cancelled appointments
