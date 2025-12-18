@@ -32,13 +32,19 @@ public class AppointmentScheduler {
     public boolean bookAppointment(Doctor doctor, Patient patient, LocalDateTime dateTime) {
         System.out.println("Attempting to book for Dr. " + doctor.getName() + " at " + dateTime + "...");
 
-        // 1. Validate directly
+        // 1. Validate Doctor Availability
         if (!isSlotAvailable(doctor, dateTime)) {
-            System.out.println("Booking denied: Slot unavailable.");
+            System.out.println("Booking denied: Doctor unavailable.");
             return false;
         }
 
-        // 2. Build using Builder
+        // 2. Validate Patient Availability (Prevent Patient Double Booking)
+        if (!isPatientAvailable(patient, dateTime)) {
+            System.out.println("Booking denied: Patient already has an appointment at this time.");
+            return false;
+        }
+
+        // 3. Build using Builder
         Appointment newAppointment = new AppointmentBuilder()
                 .setId(appointments.size() + 1)
                 .setDoctor(doctor)
@@ -46,7 +52,7 @@ public class AppointmentScheduler {
                 .setDateTime(dateTime)
                 .build();
 
-        // 3. Save
+        // 4. Save
         appointments.add(newAppointment);
         System.out.println("Booking Successful: " + newAppointment);
         return true;
@@ -54,6 +60,11 @@ public class AppointmentScheduler {
 
     private boolean isSlotAvailable(Doctor doctor, LocalDateTime time) {
         for (Appointment appt : appointments) {
+            // Ignore cancelled appointments
+            if ("Cancelled".equalsIgnoreCase(appt.getStatus()) || "Rejected".equalsIgnoreCase(appt.getStatus())) {
+                continue;
+            }
+
             if (appt.getDoctor().getId() == doctor.getId()) {
                 if (appt.getDateTime().isEqual(time)) {
                     System.out
@@ -65,8 +76,29 @@ public class AppointmentScheduler {
         return true;
     }
 
+    private boolean isPatientAvailable(Patient patient, LocalDateTime time) {
+        for (Appointment appt : appointments) {
+            // Ignore cancelled appointments
+            if ("Cancelled".equalsIgnoreCase(appt.getStatus()) || "Rejected".equalsIgnoreCase(appt.getStatus())) {
+                continue;
+            }
+
+            if (appt.getPatient().getId() == patient.getId()) {
+                if (appt.getDateTime().isEqual(time)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     public boolean isSlotBooked(int doctorId, LocalDateTime time) {
         for (Appointment appt : appointments) {
+            // Ignore cancelled appointments
+            if ("Cancelled".equalsIgnoreCase(appt.getStatus()) || "Rejected".equalsIgnoreCase(appt.getStatus())) {
+                continue;
+            }
+
             if (appt.getDoctor().getId() == doctorId) {
                 if (appt.getDateTime().isEqual(time)) {
                     return true;
