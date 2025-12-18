@@ -19,13 +19,27 @@ public class RegisterForm extends JFrame {
 
     public RegisterForm() {
         setTitle("Create Account - Clinic Appointment System");
-        setSize(450, 550);
+        setSize(950, 600);
         setLocationRelativeTo(null);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        JPanel container = new JPanel(new GridLayout(1, 2));
+
+        // --- Left Side (Image) ---
+        JPanel imagePanel = new JPanel(new BorderLayout());
+        imagePanel.setBackground(Theme.PRIMARY_COLOR);
+
+        ImageIcon icon = new ImageIcon("src/resources/images/login_bg.png");
+        Image img = icon.getImage().getScaledInstance(475, 600, Image.SCALE_SMOOTH);
+        JLabel imageLabel = new JLabel(new ImageIcon(img));
+        imagePanel.add(imageLabel, BorderLayout.CENTER);
+
+        container.add(imagePanel);
+
+        // --- Right Side (Form) ---
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
         mainPanel.setBackground(Theme.BACKGROUND_COLOR);
 
         JLabel title = new JLabel("Create Your Account", JLabel.CENTER);
@@ -76,24 +90,19 @@ public class RegisterForm extends JFrame {
         buttonPanel.setBackground(Theme.BACKGROUND_COLOR);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-        JButton createBtn = new JButton("Create Account");
-        createBtn.setFont(Theme.BUTTON_FONT);
-        createBtn.setBackground(Theme.PRIMARY_COLOR);
-        createBtn.setForeground(Theme.WHITE);
-        createBtn.setFocusPainted(false);
+        JButton createBtn = new JButton("CREATE ACCOUNT");
+        Theme.styleButton(createBtn, true);
 
         JButton backBtn = new JButton("Back to Login");
-        backBtn.setFont(Theme.BUTTON_FONT);
-        backBtn.setBackground(Theme.BACKGROUND_COLOR);
-        backBtn.setForeground(Theme.PRIMARY_COLOR);
-        backBtn.setFocusPainted(false);
-        backBtn.setBorder(BorderFactory.createLineBorder(Theme.PRIMARY_COLOR));
+        Theme.styleButton(backBtn, false);
 
         buttonPanel.add(createBtn);
         buttonPanel.add(backBtn);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        add(mainPanel);
+        container.add(mainPanel);
+
+        add(container);
 
         // Listeners
         roleBox.addActionListener(e -> {
@@ -111,9 +120,16 @@ public class RegisterForm extends JFrame {
 
     private void addLabeledField(JPanel panel, String labelText, JComponent field) {
         JLabel label = new JLabel(labelText);
-        label.setFont(Theme.REGULAR_FONT);
+        label.setFont(Theme.SUBHEADER_FONT);
+        label.setForeground(Theme.TEXT_SECONDARY);
         panel.add(label);
+
         field.setFont(Theme.REGULAR_FONT);
+        if (field instanceof JTextField) { // Includes JPasswordField
+            ((JTextField) field).setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                    BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+        }
         panel.add(field);
     }
 

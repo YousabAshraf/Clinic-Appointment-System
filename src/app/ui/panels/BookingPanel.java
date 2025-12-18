@@ -14,73 +14,216 @@ import app.services.appointment.AppointmentScheduler;
 import app.services.payments.*;
 import app.security.SessionManager;
 import app.ui.style.Theme;
+import java.util.HashSet;
+import java.util.Set;
 
 public class BookingPanel extends JPanel {
 
     private JComboBox<String> doctorBox;
     private List<Doctor> doctorList;
-    private JTextField dateField;
+    private JComboBox<String> dateBox;
     private JComboBox<String> timeBox;
     private JComboBox<String> paymentBox;
+    private JLabel feeLabel;
 
     public BookingPanel() {
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout()); // Center the card
         setBackground(Theme.BACKGROUND_COLOR);
 
-        // Header
-        JLabel title = new JLabel("Book an Appointment");
-        title.setFont(Theme.HEADER_FONT);
-        title.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(title, BorderLayout.NORTH);
+        // --- Card Panel ---
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
+                BorderFactory.createEmptyBorder(30, 40, 30, 40)));
 
-        // Form
-        JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 20));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        formPanel.setBackground(Theme.BACKGROUND_COLOR);
+        // Title
+        JLabel title = new JLabel("Book Appointment");
+        title.setFont(Theme.TITLE_FONT);
+        title.setForeground(Theme.PRIMARY_COLOR);
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        card.add(title);
 
-        // Doctor Selection
-        formPanel.add(new JLabel("Select Doctor:"));
-        doctorBox = new JComboBox<>();
-        loadDoctors();
-        formPanel.add(doctorBox);
+        card.add(Box.createVerticalStrut(20));
 
-        // Date Selection
-        formPanel.add(new JLabel("Date (yyyy-MM-dd):"));
-        dateField = new JTextField(LocalDate.now().plusDays(1).toString());
-        formPanel.add(dateField);
+        // --- Form Section (GridBag) ---
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
-        // Time Selection
-        formPanel.add(new JLabel("Time Slot:"));
-        String[] times = { "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00" };
-        timeBox = new JComboBox<>(times);
-        formPanel.add(timeBox);
+        // Row 0: Doctor
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        form.add(createLabel("Select Doctor"), gbc);
 
-        // Payment Method
-        formPanel.add(new JLabel("Payment Method:"));
+        gbc.gridx = 1;
+        doctorBox = createComboBox();
+        doctorBox.addActionListener(e -> loadAvailableDates()); // Also updates fee
+        form.add(doctorBox, gbc);
+
+        // Row 1: Fee Display
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        form.add(createLabel("Consultation Fee"), gbc);
+
+        gbc.gridx = 1;
+        feeLabel = new JLabel("$0.00");
+        feeLabel.setFont(Theme.HEADER_FONT);
+        feeLabel.setForeground(Theme.ACCENT_COLOR);
+        form.add(feeLabel, gbc);
+
+        // Row 2: Date
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        form.add(createLabel("Select Date"), gbc);
+
+        gbc.gridx = 1;
+        dateBox = createComboBox();
+        dateBox.addActionListener(e -> loadAvailableSlots());
+        form.add(dateBox, gbc);
+
+        // Row 3: Time
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        form.add(createLabel("Available Time"), gbc);
+
+        gbc.gridx = 1;
+        timeBox = createComboBox();
+        form.add(timeBox, gbc);
+
+        // Row 4: Payment
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        form.add(createLabel("Payment Method"), gbc);
+
+        gbc.gridx = 1;
         String[] methods = { "Cash", "Credit Card", "PayPal" };
-        paymentBox = new JComboBox<>(methods);
-        formPanel.add(paymentBox);
+        paymentBox = createComboBox();
+        for (String m : methods)
+            paymentBox.addItem(m);
+        form.add(paymentBox, gbc);
 
-        add(formPanel, BorderLayout.CENTER);
+        card.add(form);
+        card.add(Box.createVerticalStrut(30));
+
+        // Only add card to main panel
+        add(card);
 
         // Action Button
-        JButton bookBtn = new JButton("Confirm Booking");
-        bookBtn.setFont(Theme.BUTTON_FONT);
-        bookBtn.setBackground(Theme.PRIMARY_COLOR);
-        bookBtn.setForeground(Theme.WHITE);
+        JButton bookBtn = new JButton("CONFIRM BOOKING");
+        Theme.styleButton(bookBtn, true);
+        bookBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bookBtn.setMaximumSize(new Dimension(200, 40));
         bookBtn.addActionListener(e -> attemptBooking());
 
-        JPanel btnPanel = new JPanel(new FlowLayout());
-        btnPanel.setBackground(Theme.BACKGROUND_COLOR);
-        btnPanel.add(bookBtn);
-        add(btnPanel, BorderLayout.SOUTH);
+        card.add(bookBtn);
+
+        // Initialize
+        loadDoctors();
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(Theme.SUBHEADER_FONT);
+        lbl.setForeground(Theme.TEXT_SECONDARY);
+        return lbl;
+    }
+
+    private JComboBox<String> createComboBox() {
+        JComboBox<String> box = new JComboBox<>();
+        box.setFont(Theme.REGULAR_FONT);
+        box.setBackground(Color.WHITE);
+        box.setPreferredSize(new Dimension(250, 35));
+        return box;
     }
 
     private void loadDoctors() {
-        doctorBox.removeAllItems();
+        doctorBox.removeAllItems(); // Triggers listener -> loadAvailableDates -> updateFee
         doctorList = DoctorService.getInstance().getAllDoctors();
         for (Doctor d : doctorList) {
-            doctorBox.addItem(d.getName() + " (" + d.getSpecialty() + ") - $" + d.getConsultationFee());
+            doctorBox.addItem(d.getName() + " (" + d.getSpecialty() + ")");
+        }
+        if (doctorBox.getItemCount() > 0) {
+            doctorBox.setSelectedIndex(0);
+        }
+    }
+
+    private void loadAvailableDates() {
+        dateBox.removeAllItems();
+        int docIndex = doctorBox.getSelectedIndex();
+        if (docIndex < 0 || doctorList == null || docIndex >= doctorList.size()) {
+            return;
+        }
+
+        // Update Fee Display
+        Doctor doc = doctorList.get(docIndex);
+        feeLabel.setText(String.format("$%.2f", doc.getConsultationFee()));
+
+        List<String> availability = doc.getAvailability();
+
+        // Find which days of week the doctor works
+        Set<String> workingDays = new HashSet<>();
+        for (String slot : availability) {
+            String day = slot.split(" ")[0]; // "Monday"
+            workingDays.add(day);
+        }
+
+        // Generate next 14 days and check if they match working days
+        LocalDate today = LocalDate.now().plusDays(1); // Start from tomorrow
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (int i = 0; i < 14; i++) {
+            LocalDate d = today.plusDays(i);
+            String dayName = d.getDayOfWeek().toString(); // "MONDAY"
+            dayName = dayName.charAt(0) + dayName.substring(1).toLowerCase(); // "Monday"
+
+            if (workingDays.contains(dayName)) {
+                dateBox.addItem(d.format(formatter) + " (" + dayName + ")");
+            }
+        }
+    }
+
+    private void loadAvailableSlots() {
+        timeBox.removeAllItems();
+        int docIndex = doctorBox.getSelectedIndex();
+        if (docIndex < 0)
+            return;
+
+        if (dateBox.getSelectedItem() == null)
+            return;
+
+        String dateSelection = (String) dateBox.getSelectedItem(); // "2025-12-20 (Saturday)"
+        String dateStr = dateSelection.split(" ")[0]; // "2025-12-20"
+
+        LocalDate date = LocalDate.parse(dateStr);
+
+        // Get Doctor and Day of Week
+        Doctor doc = doctorList.get(docIndex);
+        String dayOfWeek = date.getDayOfWeek().toString(); // "SATURDAY"
+        dayOfWeek = dayOfWeek.charAt(0) + dayOfWeek.substring(1).toLowerCase(); // "Saturday"
+
+        List<String> doctorAvail = doc.getAvailability();
+
+        for (String slot : doctorAvail) {
+            // Check if slot starts with the day (e.g., "Monday 09:00")
+            if (slot.startsWith(dayOfWeek)) {
+                String[] parts = slot.split(" ");
+                if (parts.length >= 2) {
+                    String timeStr = parts[1]; // "09:00"
+
+                    // Check if already booked
+                    LocalTime t = LocalTime.parse(timeStr);
+                    LocalDateTime dt = LocalDateTime.of(date, t);
+
+                    if (!AppointmentScheduler.getInstance().isSlotBooked(doc.getId(), dt)) {
+                        timeBox.addItem(timeStr);
+                    }
+                }
+            }
         }
     }
 
@@ -90,9 +233,16 @@ public class BookingPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Please select a doctor.");
             return;
         }
+
+        if (dateBox.getSelectedItem() == null || timeBox.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Please select a Date and Time.");
+            return;
+        }
+
         Doctor selectedDoc = doctorList.get(docIndex);
 
-        String dateStr = dateField.getText();
+        String dateSelection = (String) dateBox.getSelectedItem(); // "2025-12-20 (Saturday)"
+        String dateStr = dateSelection.split(" ")[0];
         String timeStr = (String) timeBox.getSelectedItem();
 
         LocalDateTime bookingDateTime;
@@ -101,7 +251,7 @@ public class BookingPanel extends JPanel {
             LocalTime time = LocalTime.parse(timeStr);
             bookingDateTime = LocalDateTime.of(date, time);
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Invalid Date Format! Use yyyy-MM-dd");
+            JOptionPane.showMessageDialog(this, "Error processing date/time.");
             return;
         }
 
@@ -120,6 +270,13 @@ public class BookingPanel extends JPanel {
                 break;
         }
 
+        int result = JOptionPane.showConfirmDialog(this,
+                "Confirm booking with " + selectedDoc.getName() + " for $" + selectedDoc.getConsultationFee() + "?",
+                "Confirm Apppointment", JOptionPane.YES_NO_OPTION);
+
+        if (result != JOptionPane.YES_OPTION)
+            return;
+
         System.out.println("Processing payment...");
         strategy.pay(selectedDoc.getConsultationFee());
 
@@ -132,7 +289,6 @@ public class BookingPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Booking Successful!\nPaid via " + method);
         } else {
             JOptionPane.showMessageDialog(this, "Booking Failed! Slot already taken or error.");
-            // Logic to refund could go here
         }
     }
 }

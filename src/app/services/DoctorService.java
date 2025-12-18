@@ -32,6 +32,18 @@ public class DoctorService {
                 Doctor d = box.get();
                 d.setSpecialty(specialty);
                 d.setConsultationFee(fee);
+
+                // Set Default Availability (Mon-Fri, 09:00 - 17:00)
+                List<String> defaultAvail = new ArrayList<>();
+                String[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+                String[] hours = { "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00" };
+
+                for (String day : days) {
+                    for (String hour : hours) {
+                        defaultAvail.add(day + " " + hour);
+                    }
+                }
+                d.setAvailability(defaultAvail);
             }
         }
         return success;

@@ -65,6 +65,17 @@ public class AppointmentScheduler {
         return true;
     }
 
+    public boolean isSlotBooked(int doctorId, LocalDateTime time) {
+        for (Appointment appt : appointments) {
+            if (appt.getDoctor().getId() == doctorId) {
+                if (appt.getDateTime().isEqual(time)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public List<Appointment> getAppointments() {
         return appointments;
     }

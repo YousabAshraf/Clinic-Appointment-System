@@ -15,27 +15,49 @@ public class DoctorManagementPanel extends JPanel {
     private DefaultTableModel model;
 
     public DoctorManagementPanel() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 20)); // Vertical gap
         setBackground(Theme.BACKGROUND_COLOR);
+        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Header
         JLabel title = new JLabel("Manage Doctors");
-        title.setFont(Theme.HEADER_FONT);
+        title.setFont(Theme.TITLE_FONT);
+        title.setForeground(Theme.PRIMARY_DARK);
         add(title, BorderLayout.NORTH);
 
         // Table
         String[] cols = { "ID", "Name", "Email", "Specialty", "Fee" };
-        model = new DefaultTableModel(cols, 0);
+        model = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         table = new JTable(model);
-        table.setRowHeight(25);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        Theme.styleTable(table); // Apply new styling
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder()); // Clean look
+        scrollPane.getViewport().setBackground(Theme.SURFACE_COLOR);
+        add(scrollPane, BorderLayout.CENTER);
 
         // Controls
-        JPanel btnPanel = new JPanel();
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        btnPanel.setBackground(Theme.BACKGROUND_COLOR);
+
         JButton addBtn = new JButton("Add Doctor");
         JButton editBtn = new JButton("Edit Details");
         JButton availBtn = new JButton("Manage Availability");
         JButton delBtn = new JButton("Delete Doctor");
+
+        // Style Buttons
+        Theme.styleButton(addBtn, true);
+        Theme.styleButton(editBtn, false);
+        Theme.styleButton(availBtn, false);
+        Theme.styleButton(delBtn, false);
+        delBtn.setBackground(Theme.SURFACE_COLOR);
+        delBtn.setForeground(Theme.ERROR_COLOR); // Red text for delete
+        delBtn.setBorder(BorderFactory.createLineBorder(Theme.ERROR_COLOR));
 
         addBtn.addActionListener(e -> showAddDoctorDialog());
         editBtn.addActionListener(e -> showEditDoctorDialog());
@@ -174,27 +196,76 @@ public class DoctorManagementPanel extends JPanel {
             return;
 
         JDialog d = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Manage Availability", true);
-        d.setSize(400, 400);
+        d.setSize(450, 450);
         d.setLayout(new BorderLayout());
 
+        // Header
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        header.setBackground(Theme.PRIMARY_COLOR);
+        JLabel title = new JLabel("Availability for " + doc.getName());
+        title.setFont(Theme.HEADER_FONT);
+        title.setForeground(Theme.WHITE);
+        header.add(title);
+        d.add(header, BorderLayout.NORTH);
+
+        // List
         DefaultListModel<String> listModel = new DefaultListModel<>();
         for (String s : doc.getAvailability()) {
             listModel.addElement(s);
         }
         JList<String> list = new JList<>(listModel);
+        list.setFont(Theme.REGULAR_FONT);
         d.add(new JScrollPane(list), BorderLayout.CENTER);
 
+        // Controls Panel
         JPanel controls = new JPanel();
-        JTextField slotInput = new JTextField(10);
+        controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
+        controls.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        controls.setBackground(Theme.BACKGROUND_COLOR);
+
+        // Input Row
+        JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        inputPanel.setBackground(Theme.BACKGROUND_COLOR);
+
+        String[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+        JComboBox<String> dayBox = new JComboBox<>(days);
+
+        String[] hours = { "09", "10", "11", "12", "13", "14", "15", "16", "17" };
+        JComboBox<String> hourBox = new JComboBox<>(hours);
+
+        String[] mins = { "00", "15", "30", "45" };
+        JComboBox<String> minBox = new JComboBox<>(mins);
+
+        inputPanel.add(new JLabel("Day:"));
+        inputPanel.add(dayBox);
+        inputPanel.add(new JLabel("Time:"));
+        inputPanel.add(hourBox);
+        inputPanel.add(new JLabel(":"));
+        inputPanel.add(minBox);
+
+        // Buttons Row
+        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        btnRow.setBackground(Theme.BACKGROUND_COLOR);
+
         JButton addBtn = new JButton("Add Slot");
+        Theme.styleButton(addBtn, true);
+
         JButton removeBtn = new JButton("Remove Selected");
+        Theme.styleButton(removeBtn, false);
+        removeBtn.setForeground(Theme.ERROR_COLOR);
+
         JButton saveBtn = new JButton("Save & Close");
+        Theme.styleButton(saveBtn, false);
 
         addBtn.addActionListener(e -> {
-            String txt = slotInput.getText().trim();
-            if (!txt.isEmpty()) {
-                listModel.addElement(txt);
-                slotInput.setText("");
+            String day = (String) dayBox.getSelectedItem();
+            String time = hourBox.getSelectedItem() + ":" + minBox.getSelectedItem();
+            String slot = day + " " + time;
+
+            if (!listModel.contains(slot)) {
+                listModel.addElement(slot);
+            } else {
+                JOptionPane.showMessageDialog(d, "Slot already exists!");
             }
         });
 
@@ -213,13 +284,15 @@ public class DoctorManagementPanel extends JPanel {
             d.dispose();
         });
 
-        controls.add(new JLabel("Slot (Day HH:MM):"));
-        controls.add(slotInput);
-        controls.add(addBtn);
-        controls.add(removeBtn);
+        btnRow.add(addBtn);
+        btnRow.add(removeBtn);
+        btnRow.add(saveBtn);
 
-        d.add(controls, BorderLayout.NORTH);
-        d.add(saveBtn, BorderLayout.SOUTH);
+        controls.add(inputPanel);
+        controls.add(Box.createVerticalStrut(10));
+        controls.add(btnRow);
+
+        d.add(controls, BorderLayout.SOUTH);
 
         d.setLocationRelativeTo(this);
         d.setVisible(true);
