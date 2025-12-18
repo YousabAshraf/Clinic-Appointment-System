@@ -122,19 +122,65 @@ public class ViewAppointmentsPanel extends JPanel {
         JPanel infoPanel = new JPanel(new GridLayout(2, 1));
         infoPanel.setBackground(Color.WHITE);
 
-        JLabel docName = new JLabel(a.getDoctor().getName());
-        docName.setFont(Theme.SUBHEADER_FONT);
-        docName.setForeground(Theme.TEXT_PRIMARY);
+        String nameLabel = "Dr. " + a.getDoctor().getName();
+        String subLabel = a.getDoctor().getSpecialty();
 
-        JLabel specialty = new JLabel(a.getDoctor().getSpecialty());
-        specialty.setFont(Theme.REGULAR_FONT);
-        specialty.setForeground(Theme.TEXT_SECONDARY);
+        // If I am a doctor, show Patient Name instead
+        User currentUser = SessionManager.getInstance().getLoggedUser();
+        if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
+            nameLabel = "Patient: " + a.getPatient().getName();
+            subLabel = "ID: " + a.getPatient().getId();
+        }
 
-        infoPanel.add(docName);
-        infoPanel.add(specialty);
+        JLabel mainName = new JLabel(nameLabel);
+        mainName.setFont(Theme.SUBHEADER_FONT);
+        mainName.setForeground(Theme.TEXT_PRIMARY);
+
+        JLabel subMeta = new JLabel(subLabel);
+        subMeta.setFont(Theme.REGULAR_FONT);
+        subMeta.setForeground(Theme.TEXT_SECONDARY);
+
+        infoPanel.add(mainName);
+        infoPanel.add(subMeta);
         card.add(infoPanel, BorderLayout.CENTER);
 
-        // Right: Status
+        // Right: Status & Actions
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightPanel.setBackground(Color.WHITE);
+
+        // Actions for Doctor if Pending
+        if ("DOCTOR".equalsIgnoreCase(currentUser.getRole()) && "Pending".equalsIgnoreCase(a.getStatus())) {
+            JButton approveBtn = new JButton("✔");
+            approveBtn.setForeground(Theme.SUCCESS);
+            approveBtn.setBackground(Color.WHITE);
+            approveBtn.setBorder(BorderFactory.createLineBorder(Theme.SUCCESS));
+            approveBtn.setToolTipText("Approve Appointment");
+            approveBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            approveBtn.setPreferredSize(new Dimension(30, 30));
+            approveBtn.addActionListener(e -> {
+                a.approve();
+                refreshData();
+            });
+
+            JButton cancelBtn = new JButton("✖");
+            cancelBtn.setForeground(Theme.ERROR_COLOR);
+            cancelBtn.setBackground(Color.WHITE);
+            cancelBtn.setBorder(BorderFactory.createLineBorder(Theme.ERROR_COLOR));
+            cancelBtn.setToolTipText("Reject Appointment");
+            cancelBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            cancelBtn.setPreferredSize(new Dimension(30, 30));
+            cancelBtn.addActionListener(e -> {
+                a.cancel();
+                refreshData();
+            });
+
+            rightPanel.add(approveBtn);
+            rightPanel.add(Box.createHorizontalStrut(5));
+            rightPanel.add(cancelBtn);
+            rightPanel.add(Box.createHorizontalStrut(10));
+        }
+
+        // Status Badge
         JLabel statusLbl = new JLabel(" " + a.getStatus() + " ");
         statusLbl.setFont(Theme.BUTTON_FONT);
         statusLbl.setOpaque(true);
@@ -149,11 +195,8 @@ public class ViewAppointmentsPanel extends JPanel {
         }
         statusLbl.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Pill padding
 
-        JPanel statusContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        statusContainer.setBackground(Color.WHITE);
-        statusContainer.add(statusLbl);
-
-        card.add(statusContainer, BorderLayout.EAST);
+        rightPanel.add(statusLbl);
+        card.add(rightPanel, BorderLayout.EAST);
 
         return card;
     }
