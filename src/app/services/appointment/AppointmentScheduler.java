@@ -149,5 +149,8 @@ public class AppointmentScheduler {
                 })
                 .collect(Collectors.toList());
     }
+    public void removeAppointment(Appointment a) {
+        appointments.remove(a);
+    }
 
 }

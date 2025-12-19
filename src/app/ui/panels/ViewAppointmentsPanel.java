@@ -273,8 +273,18 @@ public class ViewAppointmentsPanel extends JPanel {
             unblockBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
             unblockBtn.setPreferredSize(new Dimension(80, 25));
             unblockBtn.addActionListener(e -> {
-                a.cancel();
-                refreshData();
+                int confirm = JOptionPane.showConfirmDialog(
+                        this,
+                        "Are you sure you want to unblock this slot?",
+                        "Confirm Unblock",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    AppointmentScheduler.getInstance().removeAppointment(a);
+                    JOptionPane.showMessageDialog(this, "Slot Unblocked Successfully.");
+                    refreshData();
+                }
             });
             rightPanel.add(unblockBtn);
 

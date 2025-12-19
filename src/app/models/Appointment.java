@@ -33,6 +33,16 @@ public class Appointment {
         state.cancel(this);
     }
 
+    public boolean isBlocked() {
+        return patient != null && patient.getId() == -1;
+    }
+
+    public void unblock() {
+        if (isBlocked()) {
+            this.patient = null;   // أو Patient وهمي عادي
+        }
+    }
+
     public void reschedule(LocalDateTime newTime) {
         state.reschedule(this, newTime);
     }
