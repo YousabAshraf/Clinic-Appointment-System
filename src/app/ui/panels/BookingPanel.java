@@ -25,6 +25,23 @@ public class BookingPanel extends JPanel {
     private JComboBox<String> timeBox;
     private JComboBox<String> paymentBox;
     private JLabel feeLabel;
+    
+    // Payment detail fields
+    private JPanel paymentDetailsPanel;
+    private JLabel cardNumberLabel;
+    private JTextField cardNumberField;
+    private JLabel cardHolderLabel;
+    private JTextField cardHolderField;
+    private JLabel expiryMonthLabel;
+    private JTextField expiryMonthField;
+    private JLabel expiryYearLabel;
+    private JTextField expiryYearField;
+    private JLabel cvvLabel;
+    private JTextField cvvField;
+    private JLabel paypalEmailLabel;
+    private JTextField paypalEmailField;
+    private JLabel paypalPasswordLabel;
+    private JPasswordField paypalPasswordField;
 
     public BookingPanel() {
         setLayout(new GridBagLayout()); // Center the card
@@ -105,7 +122,23 @@ public class BookingPanel extends JPanel {
         paymentBox = createComboBox();
         for (String m : methods)
             paymentBox.addItem(m);
+        paymentBox.addActionListener(e -> updatePaymentDetailsVisibility());
         form.add(paymentBox, gbc);
+
+        // Row 5: Payment Details Panel (dynamically shown)
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0; // Allow panel to expand
+        gbc.weighty = 0; // Don't expand vertically
+        paymentDetailsPanel = createPaymentDetailsPanel();
+        paymentDetailsPanel.setVisible(false);
+        form.add(paymentDetailsPanel, gbc);
+        gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0; // Reset weightx
+        gbc.weighty = 0; // Reset weighty
 
         card.add(form);
         card.add(Box.createVerticalStrut(30));
@@ -139,6 +172,143 @@ public class BookingPanel extends JPanel {
         box.setBackground(Color.WHITE);
         box.setPreferredSize(new Dimension(250, 35));
         return box;
+    }
+
+    private JPanel createPaymentDetailsPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(200, 200, 200)),
+                "Payment Details",
+                0, 0,
+                Theme.SUBHEADER_FONT));
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 10, 8, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.weightx = 1.0; // Allow fields to expand horizontally
+
+        // Credit Card Fields
+        int row = 0;
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        cardNumberLabel = createLabel("Card Number:");
+        panel.add(cardNumberLabel, gbc);
+        gbc.gridx = 1;
+        cardNumberField = createTextField();
+        panel.add(cardNumberField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        cardHolderLabel = createLabel("Cardholder Name:");
+        panel.add(cardHolderLabel, gbc);
+        gbc.gridx = 1;
+        cardHolderField = createTextField();
+        panel.add(cardHolderField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        expiryMonthLabel = createLabel("Expiry Month (MM):");
+        panel.add(expiryMonthLabel, gbc);
+        gbc.gridx = 1;
+        expiryMonthField = createTextField();
+        panel.add(expiryMonthField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        expiryYearLabel = createLabel("Expiry Year (YYYY):");
+        panel.add(expiryYearLabel, gbc);
+        gbc.gridx = 1;
+        expiryYearField = createTextField();
+        panel.add(expiryYearField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        cvvLabel = createLabel("CVV:");
+        panel.add(cvvLabel, gbc);
+        gbc.gridx = 1;
+        cvvField = createTextField();
+        panel.add(cvvField, gbc);
+
+        // PayPal Fields
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        paypalEmailLabel = createLabel("PayPal Email:");
+        panel.add(paypalEmailLabel, gbc);
+        gbc.gridx = 1;
+        paypalEmailField = createTextField();
+        panel.add(paypalEmailField, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row++;
+        paypalPasswordLabel = createLabel("PayPal Password:");
+        panel.add(paypalPasswordLabel, gbc);
+        gbc.gridx = 1;
+        paypalPasswordField = new JPasswordField();
+        paypalPasswordField.setFont(Theme.REGULAR_FONT);
+        paypalPasswordField.setBackground(Color.WHITE);
+        paypalPasswordField.setPreferredSize(new Dimension(350, 40));
+        paypalPasswordField.setMinimumSize(new Dimension(300, 40));
+        panel.add(paypalPasswordField, gbc);
+
+        return panel;
+    }
+
+    private JTextField createTextField() {
+        JTextField field = new JTextField();
+        field.setFont(Theme.REGULAR_FONT);
+        field.setBackground(Color.WHITE);
+        field.setPreferredSize(new Dimension(350, 40));
+        field.setMinimumSize(new Dimension(300, 40));
+        return field;
+    }
+
+    private void updatePaymentDetailsVisibility() {
+        String method = (String) paymentBox.getSelectedItem();
+        if (method == null) {
+            paymentDetailsPanel.setVisible(false);
+            return;
+        }
+
+        boolean showDetails = !method.equals("Cash");
+        paymentDetailsPanel.setVisible(showDetails);
+
+        // Show/hide specific fields based on payment method
+        if (method.equals("Credit Card")) {
+            cardNumberLabel.setVisible(true);
+            cardNumberField.setVisible(true);
+            cardHolderLabel.setVisible(true);
+            cardHolderField.setVisible(true);
+            expiryMonthLabel.setVisible(true);
+            expiryMonthField.setVisible(true);
+            expiryYearLabel.setVisible(true);
+            expiryYearField.setVisible(true);
+            cvvLabel.setVisible(true);
+            cvvField.setVisible(true);
+            paypalEmailLabel.setVisible(false);
+            paypalEmailField.setVisible(false);
+            paypalPasswordLabel.setVisible(false);
+            paypalPasswordField.setVisible(false);
+        } else if (method.equals("PayPal")) {
+            cardNumberLabel.setVisible(false);
+            cardNumberField.setVisible(false);
+            cardHolderLabel.setVisible(false);
+            cardHolderField.setVisible(false);
+            expiryMonthLabel.setVisible(false);
+            expiryMonthField.setVisible(false);
+            expiryYearLabel.setVisible(false);
+            expiryYearField.setVisible(false);
+            cvvLabel.setVisible(false);
+            cvvField.setVisible(false);
+            paypalEmailLabel.setVisible(true);
+            paypalEmailField.setVisible(true);
+            paypalPasswordLabel.setVisible(true);
+            paypalPasswordField.setVisible(true);
+        }
+
+        revalidate();
+        repaint();
     }
 
     private void loadDoctors() {
@@ -276,28 +446,88 @@ public class BookingPanel extends JPanel {
 
         // 1. Process Payment
         String method = (String) paymentBox.getSelectedItem();
-        PaymentStrategy strategy;
-        switch (method) {
-            case "Credit Card":
-                strategy = new CreditCardPayment("1234567890123456", "John Doe", 12, 2030, "123");
-                break;
-            case "PayPal":
-                strategy = new PayPalPayment("john@example.com", "password123");
-                break;
-            default:
-                strategy = new CashPayment();
-                break;
-        }
+        PaymentContext paymentContext = new PaymentContext();
+        PaymentStrategy strategy = null;
 
-        int result = JOptionPane.showConfirmDialog(this,
-                "Confirm booking with " + selectedDoc.getName() + " for $" + selectedDoc.getConsultationFee() + "?",
-                "Confirm Apppointment", JOptionPane.YES_NO_OPTION);
+        try {
+            switch (method) {
+                case "Credit Card":
+                    // Validate and collect credit card details
+                    String cardNumber = cardNumberField.getText().trim();
+                    String cardHolder = cardHolderField.getText().trim();
+                    String expiryMonthStr = expiryMonthField.getText().trim();
+                    String expiryYearStr = expiryYearField.getText().trim();
+                    String cvv = cvvField.getText().trim();
 
-        if (result != JOptionPane.YES_OPTION)
+                    if (cardNumber.isEmpty() || cardHolder.isEmpty() || 
+                        expiryMonthStr.isEmpty() || expiryYearStr.isEmpty() || cvv.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Please fill in all credit card details.", 
+                            "Payment Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    try {
+                        int expiryMonth = Integer.parseInt(expiryMonthStr);
+                        int expiryYear = Integer.parseInt(expiryYearStr);
+                        strategy = new CreditCardPayment(cardNumber, cardHolder, expiryMonth, expiryYear, cvv);
+                    } catch (NumberFormatException e) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Invalid expiry month or year. Please enter valid numbers.", 
+                            "Payment Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    break;
+
+                case "PayPal":
+                    // Validate and collect PayPal details
+                    String email = paypalEmailField.getText().trim();
+                    String password = new String(paypalPasswordField.getPassword());
+
+                    if (email.isEmpty() || password.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Please fill in PayPal email and password.", 
+                            "Payment Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    strategy = new PayPalPayment(email, password);
+                    break;
+
+                default:
+                    strategy = new CashPayment();
+                    break;
+            }
+
+            paymentContext.setStrategy(strategy);
+
+            int result = JOptionPane.showConfirmDialog(this,
+                    "Confirm booking with " + selectedDoc.getName() + " for $" + 
+                    String.format("%.2f", selectedDoc.getConsultationFee()) + "?",
+                    "Confirm Appointment", JOptionPane.YES_NO_OPTION);
+
+            if (result != JOptionPane.YES_OPTION)
+                return;
+
+            System.out.println("Processing payment...");
+            paymentContext.executePayment(selectedDoc.getConsultationFee());
+
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Payment Error: " + e.getMessage(), 
+                "Payment Failed", 
+                JOptionPane.ERROR_MESSAGE);
             return;
-
-        System.out.println("Processing payment...");
-        strategy.pay(selectedDoc.getConsultationFee());
+        } catch (IllegalStateException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Payment Error: " + e.getMessage(), 
+                "Payment Failed", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         // 2. Book
         Patient currentPatient = (Patient) SessionManager.getInstance().getLoggedUser();
@@ -305,7 +535,15 @@ public class BookingPanel extends JPanel {
                 bookingDateTime);
 
         if (success) {
-            JOptionPane.showMessageDialog(this, "Booking Successful!\nPaid via " + method);
+            String successMessage;
+            if (method.equals("Cash")) {
+                successMessage = "Booking Successful!\nAmount " + 
+                    String.format("%.2f", selectedDoc.getConsultationFee()) + 
+                    " will be collected in the clinic";
+            } else {
+                successMessage = "Booking Successful!\nPaid via " + method;
+            }
+            JOptionPane.showMessageDialog(this, successMessage);
         } else {
             JOptionPane.showMessageDialog(this, "Booking Failed! Slot already taken or error.");
         }
