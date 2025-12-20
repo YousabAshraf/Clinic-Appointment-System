@@ -19,6 +19,7 @@ public class ApprovedState implements AppointmentState {
     @Override
     public void reschedule(Appointment appointment, LocalDateTime newTime) {
         appointment.setDateTime(newTime);
+        appointment.setState(new PendingState());
         System.out.println("Approved appointment rescheduled.");
     }
 

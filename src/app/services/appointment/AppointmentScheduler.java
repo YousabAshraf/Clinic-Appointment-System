@@ -16,12 +16,10 @@ public class AppointmentScheduler {
     private static AppointmentScheduler instance;
     private List<Appointment> appointments;
 
-    // Private constructor (Singleton)
     private AppointmentScheduler() {
         this.appointments = new ArrayList<>();
     }
 
-    // Public access point
     public static AppointmentScheduler getInstance() {
         if (instance == null) {
             instance = new AppointmentScheduler();
@@ -32,19 +30,16 @@ public class AppointmentScheduler {
     public boolean bookAppointment(Doctor doctor, Patient patient, LocalDateTime dateTime) {
         System.out.println("Attempting to book for Dr. " + doctor.getName() + " at " + dateTime + "...");
 
-        // 1. Validate Doctor Availability
         if (!isSlotAvailable(doctor, dateTime)) {
             System.out.println("Booking denied: Doctor unavailable.");
             return false;
         }
 
-        // 2. Validate Patient Availability (Prevent Patient Double Booking)
         if (!isPatientAvailable(patient, dateTime)) {
             System.out.println("Booking denied: Patient already has an appointment at this time.");
             return false;
         }
 
-        // 3. Build using Builder
         Appointment newAppointment = new AppointmentBuilder()
                 .setId(appointments.size() + 1)
                 .setDoctor(doctor)
@@ -52,7 +47,6 @@ public class AppointmentScheduler {
                 .setDateTime(dateTime)
                 .build();
 
-        // 4. Save
         appointments.add(newAppointment);
         System.out.println("Booking Successful: " + newAppointment);
         return true;
@@ -64,7 +58,6 @@ public class AppointmentScheduler {
             return false;
         }
 
-        // Dummy Patient for Blocking
         Patient dummy = new Patient(-1, "UNAVAILABLE", "N/A", "N/A");
 
         Appointment blockAppt = new AppointmentBuilder()
@@ -81,7 +74,6 @@ public class AppointmentScheduler {
 
     private boolean isSlotAvailable(Doctor doctor, LocalDateTime time) {
         for (Appointment appt : appointments) {
-            // Ignore cancelled appointments
             if ("Cancelled".equalsIgnoreCase(appt.getStatus()) || "Rejected".equalsIgnoreCase(appt.getStatus())) {
                 continue;
             }
@@ -99,7 +91,6 @@ public class AppointmentScheduler {
 
     private boolean isPatientAvailable(Patient patient, LocalDateTime time) {
         for (Appointment appt : appointments) {
-            // Ignore cancelled appointments
             if ("Cancelled".equalsIgnoreCase(appt.getStatus()) || "Rejected".equalsIgnoreCase(appt.getStatus())) {
                 continue;
             }
@@ -115,7 +106,6 @@ public class AppointmentScheduler {
 
     public boolean isSlotBooked(int doctorId, LocalDateTime time) {
         for (Appointment appt : appointments) {
-            // Ignore cancelled appointments
             if ("Cancelled".equalsIgnoreCase(appt.getStatus()) || "Rejected".equalsIgnoreCase(appt.getStatus())) {
                 continue;
             }

@@ -206,7 +206,6 @@ public class ViewAppointmentsPanel extends JPanel {
 
         boolean isBlocked = (a.getPatient().getId() == -1);
 
-        // Left: Date
         JPanel datePanel = new JPanel(new GridLayout(2, 1));
         datePanel.setBackground(Color.WHITE);
         datePanel.setPreferredSize(new Dimension(100, 60));
@@ -226,7 +225,6 @@ public class ViewAppointmentsPanel extends JPanel {
         datePanel.add(timeLbl);
         card.add(datePanel, BorderLayout.WEST);
 
-        // Center: Info
         JPanel infoPanel = new JPanel(new GridLayout(2, 1));
         infoPanel.setBackground(Color.WHITE);
 
@@ -234,7 +232,6 @@ public class ViewAppointmentsPanel extends JPanel {
         String subLabel = a.getDoctor().getSpecialty();
 
         User currentUser = SessionManager.getInstance().getLoggedUser();
-        // If I am a doctor, show Patient Name instead
         if ("DOCTOR".equalsIgnoreCase(currentUser.getRole())) {
             if (isBlocked) {
                 nameLabel = "BLOCKED SLOT (LEAVE)";
@@ -260,7 +257,6 @@ public class ViewAppointmentsPanel extends JPanel {
         infoPanel.add(subMeta);
         card.add(infoPanel, BorderLayout.CENTER);
 
-        // Right: Status & Actions
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rightPanel.setBackground(isBlocked ? new Color(245, 245, 245) : Color.WHITE);
 
@@ -360,7 +356,6 @@ public class ViewAppointmentsPanel extends JPanel {
     }
 
     private void showRescheduleDialog(Appointment a) {
-        // Validation: Can only reschedule execution if we verify slot
         JPanel p = new JPanel(new GridLayout(2, 2, 5, 5));
         JTextField dateFld = new JTextField(a.getDateTime().toLocalDate().toString());
         String[] slots = { "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00" };
@@ -379,7 +374,6 @@ public class ViewAppointmentsPanel extends JPanel {
                 LocalTime t = LocalTime.parse((String) timeBox.getSelectedItem());
                 LocalDateTime dt = LocalDateTime.of(d, t);
 
-                // Check if slot available
                 if (AppointmentScheduler.getInstance().isSlotBooked(a.getDoctor().getId(), dt)) {
                     JOptionPane.showMessageDialog(this, "Slot already booked! Choose another.");
                     return;

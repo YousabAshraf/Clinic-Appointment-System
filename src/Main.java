@@ -13,10 +13,8 @@ public class Main {
     private static void initializeData() {
         System.out.println("Initializing Seed Data...");
 
-        // 1. Admin
         RegistrationService.getInstance().register("System Admin", "admin@cas.com", "admin123", "ADMIN");
 
-        // 2. Doctors
         String[] specialties = { "Cardiology", "Dermatology", "Neurology", "Pediatrics", "Orthopedics" };
         DoctorService docService = DoctorService.getInstance();
 

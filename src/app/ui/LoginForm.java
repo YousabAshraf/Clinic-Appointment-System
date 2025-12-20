@@ -91,14 +91,12 @@ public class LoginForm extends JFrame {
 
         add(container);
 
-        // Button actions
         loginBtn.addActionListener(e -> {
             String email = emailField.getText();
             String pass = new String(passField.getPassword());
             User user = LoginService.getInstance().login(email, pass);
 
             if (user != null) {
-                // JOptionPane.showMessageDialog(this, "Login Successful!");
                 new Dashboard().setVisible(true);
                 this.dispose();
             } else {

@@ -61,12 +61,10 @@ public class HomePanel extends JPanel {
     }
 
     private void buildPatientDashboard(User patient) {
-        // Main Container using GridBag for flexible layout
         JPanel mainContainer = new JPanel(new GridBagLayout());
         mainContainer.setBackground(Theme.BACKGROUND_COLOR);
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // --- Left Side: Hero Section (Text + Image) ---
         JPanel heroPanel = new JPanel();
         heroPanel.setLayout(new BoxLayout(heroPanel, BoxLayout.Y_AXIS));
         heroPanel.setBackground(Theme.BACKGROUND_COLOR);
@@ -82,7 +80,6 @@ public class HomePanel extends JPanel {
         subLbl.setForeground(Theme.TEXT_SECONDARY);
         subLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Access "Book Now" action
         JButton bookBtn = new JButton("Book New Appointment");
         Theme.styleButton(bookBtn, true);
         bookBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -96,7 +93,6 @@ public class HomePanel extends JPanel {
         heroPanel.add(Box.createVerticalStrut(30));
         heroPanel.add(bookBtn);
 
-        // Illustration
         ImageIcon icon = new ImageIcon("src/resources/images/patient_dashboard_bg.png");
         Image img = icon.getImage().getScaledInstance(400, 300, Image.SCALE_SMOOTH);
         JLabel imgLabel = new JLabel(new ImageIcon(img));
@@ -111,12 +107,10 @@ public class HomePanel extends JPanel {
         gbc.fill = GridBagConstraints.BOTH;
         mainContainer.add(heroPanel, gbc);
 
-        // --- Right Side: Widgets ---
         JPanel widgetPanel = new JPanel(new GridBagLayout());
         widgetPanel.setBackground(Theme.BACKGROUND_COLOR);
         GridBagConstraints wGbc = new GridBagConstraints();
 
-        // Next Appointment Widget
         JPanel nextApptCard = createNextAppointmentCard(patient);
 
         wGbc.gridx = 0;
@@ -127,8 +121,7 @@ public class HomePanel extends JPanel {
         wGbc.anchor = GridBagConstraints.NORTH;
         widgetPanel.add(nextApptCard, wGbc);
 
-        // Quick Tips or Info (Optional Placeholder)
-        // ...
+
 
         gbc.gridx = 1;
         gbc.weightx = 0.4;
@@ -144,13 +137,11 @@ public class HomePanel extends JPanel {
                 BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
                 BorderFactory.createEmptyBorder(20, 20, 20, 20)));
 
-        // Header
         JLabel header = new JLabel("Next Appointment");
         header.setFont(Theme.SUBHEADER_FONT);
         header.setForeground(Theme.TEXT_SECONDARY);
         card.add(header, BorderLayout.NORTH);
 
-        // Content
         Optional<Appointment> nextAppt = AppointmentScheduler.getInstance().getAppointments().stream()
                 .filter(a -> a.getPatient().getId() == patient.getId())
                 .filter(a -> a.getDateTime().isAfter(LocalDateTime.now()))

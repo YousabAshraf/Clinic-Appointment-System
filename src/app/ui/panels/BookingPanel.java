@@ -26,7 +26,6 @@ public class BookingPanel extends JPanel {
     private JComboBox<String> paymentBox;
     private JLabel feeLabel;
     
-    // Payment detail fields
     private JPanel paymentDetailsPanel;
     private JLabel cardNumberLabel;
     private JTextField cardNumberField;
@@ -47,7 +46,6 @@ public class BookingPanel extends JPanel {
         setLayout(new GridBagLayout()); // Center the card
         setBackground(Theme.BACKGROUND_COLOR);
 
-        // --- Card Panel ---
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(Color.WHITE);
@@ -55,7 +53,6 @@ public class BookingPanel extends JPanel {
                 BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
                 BorderFactory.createEmptyBorder(30, 40, 30, 40)));
 
-        // Title
         JLabel title = new JLabel("Book Appointment");
         title.setFont(Theme.TITLE_FONT);
         title.setForeground(Theme.PRIMARY_COLOR);
@@ -64,7 +61,6 @@ public class BookingPanel extends JPanel {
 
         card.add(Box.createVerticalStrut(20));
 
-        // --- Form Section (GridBag) ---
         JPanel form = new JPanel(new GridBagLayout());
         form.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -72,7 +68,6 @@ public class BookingPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
 
-        // Row 0: Doctor
         gbc.gridx = 0;
         gbc.gridy = 0;
         form.add(createLabel("Select Doctor"), gbc);
@@ -82,7 +77,6 @@ public class BookingPanel extends JPanel {
         doctorBox.addActionListener(e -> loadAvailableDates()); // Also updates fee
         form.add(doctorBox, gbc);
 
-        // Row 1: Fee Display
         gbc.gridx = 0;
         gbc.gridy = 1;
         form.add(createLabel("Consultation Fee"), gbc);
@@ -93,7 +87,6 @@ public class BookingPanel extends JPanel {
         feeLabel.setForeground(Theme.ACCENT_COLOR);
         form.add(feeLabel, gbc);
 
-        // Row 2: Date
         gbc.gridx = 0;
         gbc.gridy = 2;
         form.add(createLabel("Select Date"), gbc);
@@ -103,7 +96,6 @@ public class BookingPanel extends JPanel {
         dateBox.addActionListener(e -> loadAvailableSlots());
         form.add(dateBox, gbc);
 
-        // Row 3: Time
         gbc.gridx = 0;
         gbc.gridy = 3;
         form.add(createLabel("Available Time"), gbc);
@@ -112,7 +104,6 @@ public class BookingPanel extends JPanel {
         timeBox = createComboBox();
         form.add(timeBox, gbc);
 
-        // Row 4: Payment
         gbc.gridx = 0;
         gbc.gridy = 4;
         form.add(createLabel("Payment Method"), gbc);
@@ -125,28 +116,25 @@ public class BookingPanel extends JPanel {
         paymentBox.addActionListener(e -> updatePaymentDetailsVisibility());
         form.add(paymentBox, gbc);
 
-        // Row 5: Payment Details Panel (dynamically shown)
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0; // Allow panel to expand
-        gbc.weighty = 0; // Don't expand vertically
+        gbc.weightx = 1.0;
+        gbc.weighty = 0;
         paymentDetailsPanel = createPaymentDetailsPanel();
         paymentDetailsPanel.setVisible(false);
         form.add(paymentDetailsPanel, gbc);
         gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 0; // Reset weightx
-        gbc.weighty = 0; // Reset weighty
+        gbc.weightx = 0;
+        gbc.weighty = 0;
 
         card.add(form);
         card.add(Box.createVerticalStrut(30));
 
-        // Only add card to main panel
         add(card);
 
-        // Action Button
         JButton bookBtn = new JButton("CONFIRM BOOKING");
         Theme.styleButton(bookBtn, true);
         bookBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -155,7 +143,6 @@ public class BookingPanel extends JPanel {
 
         card.add(bookBtn);
 
-        // Initialize
         loadDoctors();
     }
 
@@ -187,9 +174,8 @@ public class BookingPanel extends JPanel {
         gbc.insets = new Insets(8, 10, 8, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.weightx = 1.0; // Allow fields to expand horizontally
+        gbc.weightx = 1.0;
 
-        // Credit Card Fields
         int row = 0;
         gbc.gridx = 0;
         gbc.gridy = row++;
@@ -231,7 +217,6 @@ public class BookingPanel extends JPanel {
         cvvField = createTextField();
         panel.add(cvvField, gbc);
 
-        // PayPal Fields
         gbc.gridx = 0;
         gbc.gridy = row++;
         paypalEmailLabel = createLabel("PayPal Email:");
@@ -274,7 +259,6 @@ public class BookingPanel extends JPanel {
         boolean showDetails = !method.equals("Cash");
         paymentDetailsPanel.setVisible(showDetails);
 
-        // Show/hide specific fields based on payment method
         if (method.equals("Credit Card")) {
             cardNumberLabel.setVisible(true);
             cardNumberField.setVisible(true);
@@ -312,7 +296,7 @@ public class BookingPanel extends JPanel {
     }
 
     private void loadDoctors() {
-        doctorBox.removeAllItems(); // Triggers listener -> loadAvailableDates -> updateFee
+        doctorBox.removeAllItems();
         doctorList = DoctorService.getInstance().getAllDoctors();
         for (Doctor d : doctorList) {
             doctorBox.addItem(d.getName() + " (" + d.getSpecialty() + ")");
@@ -329,31 +313,27 @@ public class BookingPanel extends JPanel {
             return;
         }
 
-        // Update Fee Display
         Doctor doc = doctorList.get(docIndex);
         feeLabel.setText(String.format("$%.2f", doc.getConsultationFee()));
 
         List<String> availability = doc.getAvailability();
 
-        // Find which days of week the doctor works
         Set<String> workingDays = new HashSet<>();
         for (String slot : availability) {
             String day = slot.split(" ")[0]; // "Monday"
             workingDays.add(day);
         }
 
-        // Generate next 14 days and check if they match working days and have at least
-        // one slot free
-        LocalDate today = LocalDate.now().plusDays(1); // Start from tomorrow
+
+        LocalDate today = LocalDate.now().plusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         for (int i = 0; i < 14; i++) {
             LocalDate d = today.plusDays(i);
-            String dayName = d.getDayOfWeek().toString(); // "MONDAY"
-            dayName = dayName.charAt(0) + dayName.substring(1).toLowerCase(); // "Monday"
+            String dayName = d.getDayOfWeek().toString();
+            dayName = dayName.charAt(0) + dayName.substring(1).toLowerCase();
 
             if (workingDays.contains(dayName)) {
-                // Check if FULLY booked
                 boolean hasFreeSlot = false;
                 for (String slot : availability) {
                     if (slot.startsWith(dayName)) {
@@ -385,26 +365,23 @@ public class BookingPanel extends JPanel {
         if (dateBox.getSelectedItem() == null)
             return;
 
-        String dateSelection = (String) dateBox.getSelectedItem(); // "2025-12-20 (Saturday)"
-        String dateStr = dateSelection.split(" ")[0]; // "2025-12-20"
+        String dateSelection = (String) dateBox.getSelectedItem();
+        String dateStr = dateSelection.split(" ")[0];
 
         LocalDate date = LocalDate.parse(dateStr);
 
-        // Get Doctor and Day of Week
         Doctor doc = doctorList.get(docIndex);
-        String dayOfWeek = date.getDayOfWeek().toString(); // "SATURDAY"
-        dayOfWeek = dayOfWeek.charAt(0) + dayOfWeek.substring(1).toLowerCase(); // "Saturday"
+        String dayOfWeek = date.getDayOfWeek().toString();
+        dayOfWeek = dayOfWeek.charAt(0) + dayOfWeek.substring(1).toLowerCase();
 
         List<String> doctorAvail = doc.getAvailability();
 
         for (String slot : doctorAvail) {
-            // Check if slot starts with the day (e.g., "Monday 09:00")
             if (slot.startsWith(dayOfWeek)) {
                 String[] parts = slot.split(" ");
                 if (parts.length >= 2) {
-                    String timeStr = parts[1]; // "09:00"
+                    String timeStr = parts[1];
 
-                    // Check if already booked
                     LocalTime t = LocalTime.parse(timeStr);
                     LocalDateTime dt = LocalDateTime.of(date, t);
 
@@ -430,7 +407,7 @@ public class BookingPanel extends JPanel {
 
         Doctor selectedDoc = doctorList.get(docIndex);
 
-        String dateSelection = (String) dateBox.getSelectedItem(); // "2025-12-20 (Saturday)"
+        String dateSelection = (String) dateBox.getSelectedItem();
         String dateStr = dateSelection.split(" ")[0];
         String timeStr = (String) timeBox.getSelectedItem();
 
@@ -444,7 +421,6 @@ public class BookingPanel extends JPanel {
             return;
         }
 
-        // 1. Process Payment
         String method = (String) paymentBox.getSelectedItem();
         PaymentContext paymentContext = new PaymentContext();
         PaymentStrategy strategy = null;
@@ -452,7 +428,6 @@ public class BookingPanel extends JPanel {
         try {
             switch (method) {
                 case "Credit Card":
-                    // Validate and collect credit card details
                     String cardNumber = cardNumberField.getText().trim();
                     String cardHolder = cardHolderField.getText().trim();
                     String expiryMonthStr = expiryMonthField.getText().trim();
@@ -482,7 +457,6 @@ public class BookingPanel extends JPanel {
                     break;
 
                 case "PayPal":
-                    // Validate and collect PayPal details
                     String email = paypalEmailField.getText().trim();
                     String password = new String(paypalPasswordField.getPassword());
 

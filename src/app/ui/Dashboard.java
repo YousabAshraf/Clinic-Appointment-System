@@ -19,7 +19,6 @@ public class Dashboard extends JFrame {
         setLocationRelativeTo(null);
         setResizable(true);
 
-        // تحقق من تسجيل الدخول
         User user = SessionManager.getInstance().getLoggedUser();
         if (user == null) {
             new LoginForm().setVisible(true);
@@ -28,10 +27,8 @@ public class Dashboard extends JFrame {
         }
         String role = user.getRole();
 
-        // --- Main Layout ---
         setLayout(new BorderLayout());
 
-        // --- Sidebar (Left) ---
         JPanel sidebar = new JPanel(new GridBagLayout());
         sidebar.setBackground(Theme.PRIMARY_COLOR);
         sidebar.setPreferredSize(new Dimension(260, getHeight()));
@@ -40,7 +37,6 @@ public class Dashboard extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, 0, 0, 0);
 
-        // 1. Brand Header
         JLabel brandLbl = new JLabel("CLINIC SYSTEM");
         brandLbl.setFont(new Font("Segoe UI", Font.BOLD, 22));
         brandLbl.setForeground(Color.WHITE);
@@ -52,20 +48,16 @@ public class Dashboard extends JFrame {
         gbc.anchor = GridBagConstraints.NORTH;
         sidebar.add(brandLbl, gbc);
 
-        // 2. Navigation Menu
         JPanel menuPanel = new JPanel(new GridLayout(0, 1, 0, 5));
         menuPanel.setBackground(Theme.PRIMARY_COLOR);
         menuPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
-        // Shared Nav
         addNavButton(menuPanel, "Home", "HOME", "🏠");
 
-        // --- Content Panel (Right) ---
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(Theme.BACKGROUND_COLOR);
 
-        // Role Specific Nav & Panels
         if ("ADMIN".equals(role)) {
             addNavButton(menuPanel, "Doctors", "DOCTORS", "👨‍⚕️");
             addNavButton(menuPanel, "Appointments", "APPOINTMENTS", "📅");
@@ -76,23 +68,21 @@ public class Dashboard extends JFrame {
             addNavButton(menuPanel, "My Schedule", "APPOINTMENTS", "📅");
 
             contentPanel.add(new DoctorProfilePanel(), "PROFILE");
-        } else { // PATIENT
+        } else {
             addNavButton(menuPanel, "Book New", "BOOKING", "➕");
             addNavButton(menuPanel, "My Visits", "APPOINTMENTS", "📅");
 
             contentPanel.add(new BookingPanel(), "BOOKING");
         }
 
-        // Shared Panels
         contentPanel.add(new HomePanel(() -> cardLayout.show(contentPanel, "BOOKING")), "HOME");
         contentPanel.add(new ViewAppointmentsPanel(), "APPOINTMENTS");
 
         gbc.gridy = 1;
-        gbc.weighty = 1.0; // Pushes menu items up
+        gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.NORTH;
         sidebar.add(menuPanel, gbc);
 
-        // 3. User Footer
         JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setBackground(new Color(0, 0, 0, 30)); // Slight overlay
         footerPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
@@ -132,11 +122,9 @@ public class Dashboard extends JFrame {
         gbc.anchor = GridBagConstraints.SOUTH;
         sidebar.add(footerPanel, gbc);
 
-        // --- Add sidebar & contentPanel to frame ---
         add(sidebar, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
 
-        // Default view
         cardLayout.show(contentPanel, "HOME");
     }
 
@@ -151,7 +139,6 @@ public class Dashboard extends JFrame {
         btn.setBorderPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Hover effect
         btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 btn.setBackground(Theme.PRIMARY_DARK);

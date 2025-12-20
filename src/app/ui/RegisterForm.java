@@ -26,7 +26,6 @@ public class RegisterForm extends JFrame {
 
         JPanel container = new JPanel(new GridLayout(1, 2));
 
-        // --- Left Side (Image) ---
         JPanel imagePanel = new JPanel(new BorderLayout());
         imagePanel.setBackground(Theme.PRIMARY_COLOR);
 
@@ -37,7 +36,6 @@ public class RegisterForm extends JFrame {
 
         container.add(imagePanel);
 
-        // --- Right Side (Form) ---
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
         mainPanel.setBackground(Theme.BACKGROUND_COLOR);
@@ -47,7 +45,6 @@ public class RegisterForm extends JFrame {
         title.setForeground(Theme.PRIMARY_COLOR);
         mainPanel.add(title, BorderLayout.NORTH);
 
-        // Form panel
         JPanel formPanel = new JPanel(new GridLayout(0, 2, 10, 15));
         formPanel.setBackground(Theme.BACKGROUND_COLOR);
 
@@ -65,7 +62,6 @@ public class RegisterForm extends JFrame {
         roleBox.setBackground(Theme.WHITE);
         formPanel.add(roleBox);
 
-        // Doctor fields
         specialtyLabel = new JLabel("Specialty");
         specialtyLabel.setFont(Theme.REGULAR_FONT);
         specialtyField = new JTextField();
@@ -85,7 +81,6 @@ public class RegisterForm extends JFrame {
 
         mainPanel.add(formPanel, BorderLayout.CENTER);
 
-        // Buttons
         JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 10, 10));
         buttonPanel.setBackground(Theme.BACKGROUND_COLOR);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
@@ -104,7 +99,6 @@ public class RegisterForm extends JFrame {
 
         add(container);
 
-        // Listeners
         roleBox.addActionListener(e -> {
             String selected = (String) roleBox.getSelectedItem();
             toggleDoctorFields("DOCTOR".equals(selected));

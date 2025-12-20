@@ -24,7 +24,6 @@ public class Appointment {
         this.state = new PendingState();
     }
 
-    // STATE METHODS
     public void approve() {
         state.approve(this);
     }
@@ -39,7 +38,7 @@ public class Appointment {
 
     public void unblock() {
         if (isBlocked()) {
-            this.patient = null;   // أو Patient وهمي عادي
+            this.patient = null;
         }
     }
 
@@ -55,7 +54,6 @@ public class Appointment {
         return state.getStatus();
     }
 
-    // GETTERS / SETTERS
     public int getId() {
         return id;
     }

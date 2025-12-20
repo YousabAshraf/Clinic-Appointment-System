@@ -26,7 +26,6 @@ public class DoctorProfilePanel extends JPanel {
         add(title);
         add(Box.createVerticalStrut(20));
 
-        // --- Profile Fields ---
         JTextField nameField = new JTextField(doctor.getName());
         nameField.setEditable(false);
         JTextField emailField = new JTextField(doctor.getEmail());
@@ -54,7 +53,6 @@ public class DoctorProfilePanel extends JPanel {
         add(saveBtn);
         add(Box.createVerticalStrut(30));
 
-        // --- Availability Management ---
         JLabel availTitle = new JLabel("Manage Availability");
         availTitle.setFont(Theme.HEADER_FONT);
         availTitle.setForeground(Theme.PRIMARY_DARK);
@@ -72,7 +70,6 @@ public class DoctorProfilePanel extends JPanel {
         add(scroll);
         add(Box.createVerticalStrut(10));
 
-        // Input Row
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         inputPanel.setBackground(Theme.BACKGROUND_COLOR);
 
@@ -93,7 +90,6 @@ public class DoctorProfilePanel extends JPanel {
         inputPanel.add(minBox);
         add(inputPanel);
 
-        // Buttons Row
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         btnRow.setBackground(Theme.BACKGROUND_COLOR);
 
@@ -111,7 +107,6 @@ public class DoctorProfilePanel extends JPanel {
         btnRow.add(saveAvailBtn);
         add(btnRow);
 
-        // --- Action Listeners ---
         addSlotBtn.addActionListener(e -> {
             String day = (String) dayBox.getSelectedItem();
             String time = hourBox.getSelectedItem() + ":" + minBox.getSelectedItem();
@@ -136,7 +131,7 @@ public class DoctorProfilePanel extends JPanel {
                 newAvail.add(listModel.get(i));
             }
             DoctorService.getInstance().updateDoctorAvailability(doctor.getId(), newAvail);
-            doctor.setAvailability(newAvail); // تحديث الكائن الحالي
+            doctor.setAvailability(newAvail);
             JOptionPane.showMessageDialog(this, "Availability saved!");
         });
     }

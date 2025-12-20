@@ -15,17 +15,15 @@ public class DoctorManagementPanel extends JPanel {
     private DefaultTableModel model;
 
     public DoctorManagementPanel() {
-        setLayout(new BorderLayout(0, 20)); // Vertical gap
+        setLayout(new BorderLayout(0, 20));
         setBackground(Theme.BACKGROUND_COLOR);
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Header
         JLabel title = new JLabel("Manage Doctors");
         title.setFont(Theme.TITLE_FONT);
         title.setForeground(Theme.PRIMARY_DARK);
         add(title, BorderLayout.NORTH);
 
-        // Table
         String[] cols = { "ID", "Name", "Email", "Specialty", "Fee" };
         model = new DefaultTableModel(cols, 0) {
             @Override
@@ -41,7 +39,6 @@ public class DoctorManagementPanel extends JPanel {
         scrollPane.getViewport().setBackground(Theme.SURFACE_COLOR);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Controls
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         btnPanel.setBackground(Theme.BACKGROUND_COLOR);
 
@@ -50,7 +47,6 @@ public class DoctorManagementPanel extends JPanel {
         JButton availBtn = new JButton("Manage Availability");
         JButton delBtn = new JButton("Delete Doctor");
 
-        // Style Buttons
         Theme.styleButton(addBtn, true);
         Theme.styleButton(editBtn, false);
         Theme.styleButton(availBtn, false);
@@ -199,7 +195,6 @@ public class DoctorManagementPanel extends JPanel {
         d.setSize(450, 450);
         d.setLayout(new BorderLayout());
 
-        // Header
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
         header.setBackground(Theme.PRIMARY_COLOR);
         JLabel title = new JLabel("Availability for " + doc.getName());
@@ -208,7 +203,6 @@ public class DoctorManagementPanel extends JPanel {
         header.add(title);
         d.add(header, BorderLayout.NORTH);
 
-        // List
         DefaultListModel<String> listModel = new DefaultListModel<>();
         for (String s : doc.getAvailability()) {
             listModel.addElement(s);
@@ -217,13 +211,11 @@ public class DoctorManagementPanel extends JPanel {
         list.setFont(Theme.REGULAR_FONT);
         d.add(new JScrollPane(list), BorderLayout.CENTER);
 
-        // Controls Panel
         JPanel controls = new JPanel();
         controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
         controls.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         controls.setBackground(Theme.BACKGROUND_COLOR);
 
-        // Input Row
         JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         inputPanel.setBackground(Theme.BACKGROUND_COLOR);
 
@@ -243,7 +235,6 @@ public class DoctorManagementPanel extends JPanel {
         inputPanel.add(new JLabel(":"));
         inputPanel.add(minBox);
 
-        // Buttons Row
         JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnRow.setBackground(Theme.BACKGROUND_COLOR);
 

@@ -33,7 +33,6 @@ public class DoctorService {
                 d.setSpecialty(specialty);
                 d.setConsultationFee(fee);
 
-                // Set Default Availability (Mon-Fri, 09:00 - 17:00)
                 List<String> defaultAvail = new ArrayList<>();
                 String[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
                 String[] hours = { "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00" };
@@ -73,7 +72,6 @@ public class DoctorService {
     public boolean deleteDoctor(int doctorId) {
         List<User> mainList = getMainUserList();
 
-        // We have to loop and remove manually
         for (int i = 0; i < mainList.size(); i++) {
             User u = mainList.get(i);
             if (u.getId() == doctorId && u instanceof Doctor) {

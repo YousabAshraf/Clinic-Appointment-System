@@ -23,7 +23,6 @@ public class DoctorBuilder {
         this.password = password;
     }
 
-    // Fluent Setters (return 'this')
     public DoctorBuilder setId(int id) {
         this.id = id;
         return this;
@@ -54,7 +53,6 @@ public class DoctorBuilder {
         return this;
     }
 
-    // Getters (So the Doctor class can read the data)
     public int getId() {
         return id;
     }
